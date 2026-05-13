@@ -11,14 +11,53 @@ datasource db {
 }
 
 model User {
-  id        Int    @id @default(autoincrement())
-  firstName String
-  lastName  String
-  age       Int
+ id        Int    @id @default(autoincrement())
+ firstName String
+ lastName  String
+ age       Int
 }
 
-model Test {
-  id   Int    @id @default(autoincrement())
-  name String
-  age  Int
+
+enum Category {
+ Romance
+ Infantil
+ Tecnologia
+ Historia
+ Ciencias
 }
+
+
+enum LoanStatus {
+ EmAndamento
+ Devolvido
+ Atrasado
+}
+
+
+model Book {
+ id         String   @id @default(uuid())
+ title      String
+ author     String
+ isbn       String   @unique
+ publisher  String
+ year       Int
+ totalQty   Int
+ availableQty Int
+ category   Category
+ loans      Loan[]
+}
+
+
+model Loan {
+ id             String   @id @default(uuid())
+ bookId         String
+ clientName     String
+ clientEmail    String  
+ rentalDate     DateTime
+ expectedReturn DateTime
+ status         LoanStatus
+
+
+ book           Book     @relation(fields: [bookId], references: [id])
+}
+
