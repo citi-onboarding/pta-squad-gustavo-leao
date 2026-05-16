@@ -28,6 +28,16 @@ class EmprestimoController {
     return response.status(200).send(withStatus);
   };
 
+  listarPorLivro = async (request: Request, response: Response) => {
+    // Lista emprestimos de um livro especifico.
+    const { bookId } = request.params;
+
+    const loans = await prisma.loan.findMany({ where: { bookId } });
+    const withStatus = loans.map((loan) => this.computeStatus(loan));
+
+    return response.status(200).send(withStatus);
+  };
+
   registrar = async (request: Request, response: Response) => {
     // Valida estoque do livro e impede emprestimo sem disponibilidade.
     const { bookId, clientName, clientEmail, rentalDate, expectedReturn } =
