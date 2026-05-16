@@ -3,7 +3,7 @@ import { Loan, LoanStatus } from "@prisma/client";
 import prisma from "@database";
 
 class EmprestimoController {
-  // Calcula o status dinamico antes de responder.
+  // Computes the dynamic status before responding.
   private computeStatus(loan: Loan): Loan {
     if (
       loan.status !== LoanStatus.Devolvido &&
@@ -16,7 +16,7 @@ class EmprestimoController {
   }
 
   listar = async (request: Request, response: Response) => {
-    // Suporte a filtro por email via query ?cliente=.
+    // Supports email filter via ?cliente= query.
     const { cliente } = request.query;
 
     const where =
@@ -29,8 +29,13 @@ class EmprestimoController {
   };
 
   listarPorLivro = async (request: Request, response: Response) => {
-    // Lista emprestimos de um livro especifico.
+    // Lists loans for a specific book.
     const { bookId } = request.params;
+
+    const book = await prisma.book.findUnique({ where: { id: bookId } });
+
+    if (!book)
+      return response.status(400).send({ message: "Livro nao encontrado." });
 
     const loans = await prisma.loan.findMany({ where: { bookId } });
     const withStatus = loans.map((loan) => this.computeStatus(loan));
@@ -39,7 +44,7 @@ class EmprestimoController {
   };
 
   registrar = async (request: Request, response: Response) => {
-    // Valida estoque do livro e impede emprestimo sem disponibilidade.
+    // Validates book stock and blocks loans without availability.
     const { bookId, clientName, clientEmail, rentalDate, expectedReturn } =
       request.body;
 
@@ -61,7 +66,7 @@ class EmprestimoController {
     if (book.availableQty <= 0)
       return response.status(400).send({ message: "Livro sem estoque." });
 
-    // Cria o emprestimo e atualiza o estoque no mesmo fluxo.
+    // Creates the loan and updates stock in the same flow.
     const [loan] = await prisma.$transaction([
       prisma.loan.create({
         data: {
@@ -85,7 +90,7 @@ class EmprestimoController {
   };
 
   devolver = async (request: Request, response: Response) => {
-    // Devolucao incrementa o estoque e marca status como Devolvido.
+    // Return increments stock and marks status as Devolvido.
     const { id } = request.params;
 
     const loan = await prisma.loan.findUnique({ where: { id } });

@@ -9,7 +9,7 @@ routes.get("/user", userController.get);
 routes.delete("/user/:id", userController.delete);
 routes.patch("/user/:id", userController.update);
 
-// Rotas de emprestimos.
+// Loan routes.
 routes.get("/emprestimos", emprestimoController.listar);
 routes.get("/emprestimos/livro/:bookId", emprestimoController.listarPorLivro);
 routes.post("/emprestimos", emprestimoController.registrar);
