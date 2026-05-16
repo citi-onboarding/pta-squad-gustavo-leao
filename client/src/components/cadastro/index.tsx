@@ -3,7 +3,7 @@ import { Button } from "../ui/button";
 
 import { useForm } from "react-hook-form";
 
-export interface formDataProps { // usei o export interface para facilitar o lift state up posteriormente
+export interface formDataProps { // I used export interface to facilitate lift state up later
     title: string,
     author: string,
     isbn: string,
@@ -14,66 +14,77 @@ export interface formDataProps { // usei o export interface para facilitar o lif
 }
 
 export function Form() {
-    const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<formDataProps>();
+    const { register, handleSubmit, watch, setValue, reset, setError, formState: { errors } } = useForm<formDataProps>();
+    register("category", { required: "*Selecione uma categoria" });
 
     const selectedCategory = watch("category");
 
+    const onCancel = () => {
+        reset();
+    }
 
     const onSubmit = (data: formDataProps) => {
+        if (!data.category) { // prevents the user from submitting the form without clicking on any category
+        setError("category", { message: "*Selecione uma categoria" });
+        return;
+        }
         console.log(data);
+        reset(); // clears all fields when the form is submitted
     };
 
     return (
         <form className="w-1/2 h-1/4 p-8 gap-2" onSubmit={handleSubmit(onSubmit)}>
-            <div className="gap-2">
-                <div className="grid grid-cols-2 gap-4 flex-1 rounded-lg border p-4">
+            <div className="gap-2 rounded-lg border-2 shadow-md p-4">
+                <div className="grid grid-cols-2 gap-4 flex-1 rounded-lg p-4">
                     <div>
                         <label>Título</label>
-                        <input placeholder="Digite o título do livro" className="w-full rounded-lg border p-2 outline-none focus:ring-2 focus:ring-green-500"
-                        {...register("title", {required: "Este é um campo obrigatório"})}/>
-                        {errors.title && <span>{errors.title.message}</span>}
+                        <input placeholder="Digite o título do livro" className="w-full rounded-lg border p-2 outline-none focus:ring-2 focus:ring-green-400"
+                        {...register("title", {required: "*Este é um campo obrigatório"})}/>
+                        {errors.title && <span className="text-red-500 text-sm">{errors.title.message}</span>}
                     </div>
                     
                     <div>
                         <label>Autor</label>
-                        <input placeholder="Digite o nome do autor" className="w-full rounded-lg border p-2 outline-none focus:ring-2 focus:ring-green-500"
-                        {...register("author", {required: "Este é um campo obrigatório"})}/>
-                        {errors.author && <span>{errors.author.message}</span>}
+                        <input placeholder="Digite o nome do autor" className="w-full rounded-lg border p-2 outline-none focus:ring-2 focus:ring-green-400"
+                        {...register("author", {required: "*Este é um campo obrigatório"})}/>
+                        {errors.author && <span className="text-red-500 text-sm">{errors.author.message}</span>}
                     </div>
 
                     <div>
                         <label>ISBN</label>
-                        <input placeholder="Digite o ISBN" className="w-full rounded-lg border p-2 outline-none focus:ring-2 focus:ring-green-500"
-                        {...register("isbn", // validate: não deixa que o ISBN seja cadastrado contendo algo diferente de 10 ou 13 dígitos
-                            {required: "Este é um campo obrigatório", 
+                        <input placeholder="Digite o ISBN" className="w-full rounded-lg border p-2 outline-none focus:ring-2 focus:ring-green-400"
+                        {...register("isbn", // validate: prevents ISBN from being registered with anything other than 10 or 13 digits
+                            {required: "*Este é um campo obrigatório", 
                             validate: (value) => value.length === 10 || value.length === 13 || "ISBN deve ter 10 ou 13 dígitos"})}/>
-                        {errors.isbn && <span>{errors.isbn.message}</span>}
+                        {errors.isbn && <span className="text-red-500 text-sm">{errors.isbn.message}</span>}
                     </div>
                     
                     <div>
                         <label>Editora</label>
-                        <input placeholder="Digite a editora" className="w-full rounded-lg border p-2 outline-none focus:ring-2 focus:ring-green-500"
-                        {...register("publisher", {required: "Este é um campo obrigatório"})}/>
-                        {errors.publisher && <span>{errors.publisher.message}</span>}
+                        <input placeholder="Digite a editora" className="w-full rounded-lg border p-2 outline-none focus:ring-2 focus:ring-green-400"
+                        {...register("publisher", {required: "*Este é um campo obrigatório"})}/>
+                        {errors.publisher && <span className="text-red-500 text-sm">{errors.publisher.message}</span>}
                     </div>
 
                     <div>
                         <label>Ano</label>
-                        <input placeholder="Digite o ano" className="w-full rounded-lg border p-2 outline-none focus:ring-2 focus:ring-green-500"
-                        {...register("year", {required: "Este é um campo obrigatório"})}/>
-                        {errors.year && <span>{errors.year.message}</span>}
+                        <input placeholder="Digite o ano" className="w-full rounded-lg border p-2 outline-none focus:ring-2 focus:ring-green-400"
+                        {...register("year", {required: "*Este é um campo obrigatório"})}/>
+                        {errors.year && <span className="text-red-500 text-sm">{errors.year.message}</span>}
                     </div>
 
                     <div>
                         <label>Quantidade</label>
-                        <input placeholder="Digite a quantidade" className="w-full rounded-lg border p-2 outline-none focus:ring-2 focus:ring-green-500"
+                        <input placeholder="Digite a quantidade" className="w-full rounded-lg border p-2 outline-none focus:ring-2 focus:ring-green-400"
                         {...register("totalQty", 
-                            {required: "Este é um campo obrigatório",
+                            {required: "*Este é um campo obrigatório",
                             validate: (value) => value >= 0 || "Quantidade não pode ser negativa"})}/>
-                        {errors.totalQty && <span>{errors.totalQty.message}</span>}
+                        {errors.totalQty && <span className="text-red-500 text-sm">{errors.totalQty.message}</span>}
                     </div>
                 </div>
-                
+
+                <hr className="my-4" />
+
                 <div className="flex flex-col gap-2">
                     <label>Categoria</label>
 
@@ -81,17 +92,20 @@ export function Form() {
                         {["Romance", "Infantil", "Tecnologia", "Historia", "Ciencias"].map((category) => (
                         <div
                             key={category}
-                            onClick={() => setValue("category", category)}
-                            className={`rounded-lg cursor-pointer border-2 p-4 w-0 flex-1 h-32 flex flex-col items-center justify-end ${selectedCategory === category ? "border-green-500" : "border-gray-300"}`}>
+                            onClick={() => setValue("category", category, { shouldValidate: true })}
+                            className={`rounded-lg cursor-pointer border-2 p-4 w-0 flex-1 h-32 flex flex-col items-center justify-end ${selectedCategory === category ? "border-green-400" : "border-gray-300"}`}>
                             {category}
                         </div>
                         ))}
                     </div>
+                    {errors.category && <span className="text-red-500 text-sm">{errors.category.message}</span>}
                 </div>
 
-                <div className="flex justify-end gap-2">
-                    <Button variant="outline" type="button">Cancelar</Button> {/* type="button" pra que esse botão não submeta o form */}
-                    <Button className="bg-green-500 hover:bg-green-600 text-white">Salvar livro</Button>
+                <hr className="my-4" />
+
+                <div className="flex justify-end gap-2 mt-3">
+                    <Button className="border-green-400 border-2 text-green-400" variant="outline" type="button" onClick={onCancel}>Cancelar</Button> {/* type="button" so this button doesn't submit the form */}
+                    <Button className="bg-green-400 hover:bg-green-600 text-white">Salvar livro</Button>
                 </div>
             </div>
         </form>
