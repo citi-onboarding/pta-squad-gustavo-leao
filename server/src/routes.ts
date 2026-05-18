@@ -1,4 +1,5 @@
 import express from "express";
+import emprestimoController from "./controllers/EmprestimoController";
 import userController from "./controllers/UserController";
 import bookController from "./controllers/BookController";
 
@@ -15,5 +16,11 @@ routes.post("/livros", bookController.create);
 routes.get("/livros", bookController.get);
 routes.get("/livros/:id", bookController.getById);
 routes.delete("/livros/:id", bookController.delete);
+
+// Loan routes.
+routes.get("/emprestimos", emprestimoController.listar);
+routes.get("/emprestimos/livro/:bookId", emprestimoController.listarPorLivro);
+routes.post("/emprestimos", emprestimoController.registrar);
+routes.patch("/emprestimos/:id", emprestimoController.devolver);
 
 export default routes;
