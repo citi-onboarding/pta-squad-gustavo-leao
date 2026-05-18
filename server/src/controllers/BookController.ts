@@ -17,9 +17,20 @@ class BookController implements Crud {
     const { title, author, isbn, publisher, year, totalQty, category } =
       request.body;
 
-    if (this.citi.areValuesUndefined(author)) {
-      return response.status(400).send({ message: "Autor é obrigatório" });
-    }
+    if (this.citi.areValuesUndefined(
+    title,
+    author,
+    isbn,
+    publisher,
+    year,
+    totalQty,
+    category
+  )
+  ) {
+  return response
+    .status(400)
+    .send({ message: "Todos os campos são obrigatórios" });
+  }
 
     const cover =
       CAPAS_POR_CATEGORIA[category as keyof typeof CAPAS_POR_CATEGORIA];
@@ -59,17 +70,26 @@ class BookController implements Crud {
   };
 
   delete = async (request: Request, response: Response) => {
-    const { id } = request.params;
-    try {
-      await prisma.book.delete({ where: { id } });
-      return response
-        .status(200)
-        .send({ messageFromDelete: "Livro removido com sucesso" });
-    } catch (error) {
+  const { id } = request.params;
+  try {
+    const activeLoans = await prisma.loan.count({
+      where: { bookId: id, status: "EmAndamento" },
+    });
+
+    if (activeLoans > 0) {
       return response
         .status(400)
-        .send({ messageFromDelete: "Erro ao remover livro" });
+        .send({ message: "Livro possui empréstimos ativos" });
     }
+    await prisma.book.delete({ where: { id } });
+    return response
+      .status(200)
+      .send({ messageFromDelete: "Livro removido com sucesso" });
+  } catch (error) {
+    return response
+      .status(400)
+      .send({ messageFromDelete: "Erro ao remover livro" });
+  }
   };
 }
 
