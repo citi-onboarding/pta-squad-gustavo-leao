@@ -32,21 +32,26 @@ export function Form() {
         reset(); // clears all fields when the form is submitted
     };
 
+    // className="w-1/2 h-1/4 p-8 gap-2"
     return (
-        <form className="w-1/2 h-1/4 p-8 gap-2" onSubmit={handleSubmit(onSubmit)}>
+        <form onSubmit={handleSubmit(onSubmit)}>
             <div className="gap-2 rounded-lg border-2 shadow-md p-4">
                 <div className="grid grid-cols-2 gap-4 flex-1 rounded-lg p-4">
                     <div>
                         <label>Título</label>
                         <input placeholder="Digite o título do livro" className="w-full rounded-lg border p-2 outline-none focus:ring-2 focus:ring-green-400"
-                        {...register("title", {required: "*Este é um campo obrigatório"})}/>
+                        {...register("title", {
+                            required: "*Este é um campo obrigatório",
+                            validate: (value) => isNaN(Number(value)) || "*O título não pode ser um número"})}/>
                         {errors.title && <span className="text-red-500 text-sm">{errors.title.message}</span>}
                     </div>
                     
                     <div>
                         <label>Autor</label>
                         <input placeholder="Digite o nome do autor" className="w-full rounded-lg border p-2 outline-none focus:ring-2 focus:ring-green-400"
-                        {...register("author", {required: "*Este é um campo obrigatório"})}/>
+                        {...register("author", {
+                            required: "*Este é um campo obrigatório",
+                            validate: (value) => isNaN(Number(value)) || "*O autor não pode ser um número"})}/>
                         {errors.author && <span className="text-red-500 text-sm">{errors.author.message}</span>}
                     </div>
 
@@ -55,21 +60,28 @@ export function Form() {
                         <input placeholder="Digite o ISBN" className="w-full rounded-lg border p-2 outline-none focus:ring-2 focus:ring-green-400"
                         {...register("isbn", // validate: prevents ISBN from being registered with anything other than 10 or 13 digits
                             {required: "*Este é um campo obrigatório", 
-                            validate: (value) => value.length === 10 || value.length === 13 || "ISBN deve ter 10 ou 13 dígitos"})}/>
+                            validate: {
+                                numeric: (value) => !isNaN(Number(value)) || "*ISBN deve conter apenas números",
+                                length: (value) => value.length === 10 || value.length === 13 || "*ISBN deve ter 10 ou 13 dígitos"}})}/>
                         {errors.isbn && <span className="text-red-500 text-sm">{errors.isbn.message}</span>}
                     </div>
                     
                     <div>
                         <label>Editora</label>
                         <input placeholder="Digite a editora" className="w-full rounded-lg border p-2 outline-none focus:ring-2 focus:ring-green-400"
-                        {...register("publisher", {required: "*Este é um campo obrigatório"})}/>
+                        {...register("publisher", {
+                            required: "*Este é um campo obrigatório",
+                            validate: (value) => isNaN(Number(value)) || "*A editora não pode ser um número"})}/>
                         {errors.publisher && <span className="text-red-500 text-sm">{errors.publisher.message}</span>}
                     </div>
 
                     <div>
                         <label>Ano</label>
                         <input placeholder="Digite o ano" className="w-full rounded-lg border p-2 outline-none focus:ring-2 focus:ring-green-400"
-                        {...register("year", {required: "*Este é um campo obrigatório"})}/>
+                        {...register("year", 
+                        {required: "*Este é um campo obrigatório",
+                         validate: (value) => value >= 0 || "*Ano não pode ser negativo"
+                        })}/>
                         {errors.year && <span className="text-red-500 text-sm">{errors.year.message}</span>}
                     </div>
 
@@ -78,7 +90,7 @@ export function Form() {
                         <input placeholder="Digite a quantidade" className="w-full rounded-lg border p-2 outline-none focus:ring-2 focus:ring-green-400"
                         {...register("totalQty", 
                             {required: "*Este é um campo obrigatório",
-                            validate: (value) => value >= 0 || "Quantidade não pode ser negativa"})}/>
+                            validate: (value) => value >= 0 || "*Quantidade não pode ser negativa"})}/>
                         {errors.totalQty && <span className="text-red-500 text-sm">{errors.totalQty.message}</span>}
                     </div>
                 </div>
