@@ -35,16 +35,17 @@ enum LoanStatus {
 
 
 model Book {
- id         String   @id @default(uuid())
- title      String
- author     String
- isbn       String   @unique
- publisher  String
- year       Int
- totalQty   Int
- availableQty Int
- category   Category
- loans      Loan[]
+  id           String   @id @default(uuid())
+  title        String
+  author       String
+  isbn         String   @unique
+  publisher    String
+  year         Int
+  totalQty     Int
+  availableQty Int
+  category     Category
+  cover        String
+  loans        Loan[]
 }
 
 
