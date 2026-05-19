@@ -45,7 +45,7 @@ const CustomTooltip = ({
 
 export function ChartByCategory() {
   return (
-    <Card>
+    <Card className="w-full">
         <style>{`
         .bar-romance    { fill: hsl(var(--chart-1)); }
         .bar-tecnologia { fill: hsl(var(--chart-2)); }
