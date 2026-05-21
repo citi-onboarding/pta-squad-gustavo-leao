@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 
+import { Header } from "@/components/Header";
+
 import "styles/globals.css";
 
 export const metadata: Metadata = {
-  title: "Next.js Boilerplate",
-  description: "A simple boilerplate for next.js",
+  title: "Biblioteca Escolar",
+  description: "Sistema de gestão da biblioteca escolar - CITi",
   manifest: "/manifest.json",
 };
 
@@ -14,8 +16,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html>
-      <body>{children}</body>
+    <html lang="pt-BR">
+      <body className="min-h-screen bg-gray-50">
+        <Header />
+        {children}
+      </body>
     </html>
   );
 }
