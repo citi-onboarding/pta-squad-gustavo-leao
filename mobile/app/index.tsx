@@ -2,6 +2,8 @@
 import { useMemo, useState } from "react";
 // Core React Native components for layout and interaction.
 import { ScrollView, Text, TextInput, View, Pressable } from "react-native";
+// Calendar icon for the date rows.
+import { Calendar } from "lucide-react-native";
 // CITi logo imported from the assets package.
 import { citi as CitiLogo } from "@assets";
 
@@ -177,13 +179,13 @@ const App: React.FC = () => {
             {results.map((loan) => (
               <View
                 key={loan.id}
-                className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm"
+                className="rounded-2xl border border-slate-200 bg-[#EAF2FF] p-4 shadow-sm"
               >
                 {/* Book title */}
-                <Text className="text-base font-barlowSemiBold text-gray-900">
+                <Text className="text-base font-barlowSemiBold text-slate-800">
                   {loan.bookTitle}
                 </Text>
-                <View className="mt-2">
+                <View className="mt-3">
                   {/* Badge color is defined by status */}
                   <Text
                     className={`self-start rounded-full px-2.5 py-1 text-xs font-barlowSemiBold ${
@@ -194,13 +196,19 @@ const App: React.FC = () => {
                   </Text>
                 </View>
                 {/* Rental and return dates */}
-                <View className="mt-3 gap-1">
-                  <Text className="text-sm font-barlowRegular text-gray-500">
-                    Locação: {loan.rentalDate}
-                  </Text>
-                  <Text className="text-sm font-barlowRegular text-gray-500">
-                    Devolução: {loan.expectedReturn}
-                  </Text>
+                <View className="mt-3 gap-2">
+                  <View className="flex-row items-center gap-2">
+                    <Calendar size={14} color="#94A3B8" />
+                    <Text className="text-sm font-barlowRegular text-slate-600">
+                      Locação: {loan.rentalDate}
+                    </Text>
+                  </View>
+                  <View className="flex-row items-center gap-2">
+                    <Calendar size={14} color="#94A3B8" />
+                    <Text className="text-sm font-barlowRegular text-slate-600">
+                      Devolução: {loan.expectedReturn}
+                    </Text>
+                  </View>
                 </View>
               </View>
             ))}
