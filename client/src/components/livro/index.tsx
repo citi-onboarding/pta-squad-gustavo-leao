@@ -5,16 +5,26 @@ import { Bookmark, Eye, Trash2 } from "lucide-react";
 import { Button } from "../ui/button";
 
 interface CardLivroProps {
+    image?: string;
     title?: string;
     autor?: string;
     category?: string;
     totalQty?: number;
 }
 
-export function CardLivro({ title = "Clean Code", autor = "Robert C. Martin", category = "Tecnologia", totalQty = 5 }: CardLivroProps) {   // default values
+export function CardLivro({ image, title = "Clean Code", autor = "Robert C. Martin", category = "Tecnologia", totalQty = 5 }: CardLivroProps) {   // default values
     const [isOpenEmprestimo, setIsOpenEmprestimo] = useState(false);
     const [isOpenDetalhe, setIsOpenDetalhes] = useState(false);
 
+    const categoryImages: Record<string, string> = {
+        Romance: "/assets/Romance.png",
+        Infantil: "/assets/Infantil.png",
+        Tecnologia: "/assets/Tecnologia.png",
+        Historia: "/assets/Historia.png",
+        Ciencias: "/assets/Ciencias.png"
+    };
+
+    const bookImage = image ?? categoryImages[category ?? ""];
 
     const onLoan = () => { setIsOpenEmprestimo(true) }
 
@@ -26,7 +36,7 @@ export function CardLivro({ title = "Clean Code", autor = "Robert C. Martin", ca
         <div>
             <div className="w-80 h-auto flex-col rounded-lg shadow-lg"> {/* CardLivro */}
                 <div className="w-full h-48 bg-gray-100 rounded-t-lg">
-                    {/* Image here */}
+                    <img src={bookImage} alt={title} className="w-full h-48 object-cover rounded-t-lg"/>
                 </div>
 
                 <div className="flex-col gap-2 px-4 py-2">
