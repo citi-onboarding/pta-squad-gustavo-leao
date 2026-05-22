@@ -4,6 +4,8 @@ import { Bookmark, Eye, Trash2 } from "lucide-react";
 
 import { Button } from "../ui/button";
 
+import { EmprestimoForm } from "../emprestimo";
+
 interface CardLivroProps {
     image?: string;
     title?: string;
@@ -64,7 +66,9 @@ export function CardLivro({ image, title = "Clean Code", autor = "Robert C. Mart
 
             {isOpenEmprestimo && ( // EmprestimoForm
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    {/* Call EmprestimoForm here */}
+                    <EmprestimoForm 
+                    bookTitle={title} 
+                    onClose={() => setIsOpenEmprestimo(false)}/>
                 </div>
             )}
 

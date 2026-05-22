@@ -32,7 +32,7 @@ export function EmprestimoForm({ onClose, bookTitle = "O Pequeno Príncipe" }: E
     }
 
     return(
-        <div className="flex-col w-3/12 p-6 shadow-md rounded-lg">
+        <div className="bg-white flex-col w-3/12 p-6 shadow-md rounded-lg">
 
             <div className="flex justify-between">
                 <h1 className="text-lg font-bold">Realizar Empréstimo</h1>
