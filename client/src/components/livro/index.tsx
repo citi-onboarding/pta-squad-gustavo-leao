@@ -53,7 +53,7 @@ export function CardLivro({ image, title = "Clean Code", autor = "Robert C. Mart
                         <Eye></Eye>Ver
                     </Button>
 
-                    <Button onClick={onLoan} className="flex-1 bg-green-400 text-md">
+                    <Button onClick={onLoan} className="flex-1 bg-green-400 text-md hover:bg-green-600">
                         <Bookmark></Bookmark>Emprestar
                     </Button>
 
