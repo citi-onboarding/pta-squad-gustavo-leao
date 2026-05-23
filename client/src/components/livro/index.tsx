@@ -7,14 +7,14 @@ import { Button } from "../ui/button";
 import { EmprestimoForm } from "../emprestimo";
 
 interface CardLivroProps {
-    image?: string;
+    cover?: string;
     title?: string;
-    autor?: string;
+    author?: string;
     category?: string;
     totalQty?: number;
 }
 
-export function CardLivro({ image, title = "Clean Code", autor = "Robert C. Martin", category = "Tecnologia", totalQty = 5 }: CardLivroProps) {   // default values
+export function CardLivro({ cover, title, author, category, totalQty }: CardLivroProps) {
     const [isOpenEmprestimo, setIsOpenEmprestimo] = useState(false);
     const [isOpenDetalhe, setIsOpenDetalhes] = useState(false);
 
@@ -26,7 +26,7 @@ export function CardLivro({ image, title = "Clean Code", autor = "Robert C. Mart
         Ciencias: "/assets/Ciencias.png"
     };
 
-    const bookImage = image ?? categoryImages[category ?? ""];
+    const bookImage = cover ?? categoryImages[category ?? ""];
 
     const onLoan = () => { setIsOpenEmprestimo(true) }
 
@@ -43,7 +43,7 @@ export function CardLivro({ image, title = "Clean Code", autor = "Robert C. Mart
 
                 <div className="flex-col gap-2 px-4 py-2">
                     <p className="text-lg text-black font-medium">{title}</p>
-                    <p className=" text-gray-700">{autor}</p>
+                    <p className=" text-gray-700">{author}</p>
                     <p className="text-sm text-green-400">{category}</p>
                     <p className="text-sm">Disponível: {totalQty} unidade(s)</p>
                 </div>
@@ -67,7 +67,7 @@ export function CardLivro({ image, title = "Clean Code", autor = "Robert C. Mart
             {isOpenEmprestimo && ( // EmprestimoForm
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
                     <EmprestimoForm 
-                    bookTitle={title} 
+                    title={title} 
                     onClose={() => setIsOpenEmprestimo(false)}/>
                 </div>
             )}
