@@ -1,0 +1,345 @@
+import * as React from "react"
+import { X, BookOpen, MoreHorizontal } from "lucide-react"
+import { Button } from "@/components/ui/button"
+
+type LoanStatus = "Em andamento" | "Atrasado" | "Devolvido" | "Perdido"
+
+interface Loan {
+  id: string
+  clientName: string
+  clientEmail: string
+  rentalDate: string
+  expectedReturn: string
+  status: LoanStatus
+}
+
+interface Book {
+  title: string
+  author: string
+  isbn: string
+  category: string
+  publisher: string
+  year: number
+  totalQty: number
+  availableQty: number
+  cover?: string
+  loans: Loan[]
+}
+
+const MOCK_BOOK: Book = {
+  title: "O Pequeno Príncipe",
+  author: "Antoine de Saint-Exupéry",
+  isbn: "978-0132350884",
+  category: "Infantil",
+  publisher: "Prentice Hall",
+  year: 2008,
+  totalQty: 10,
+  availableQty: 8,
+  loans: [
+    {
+      id: "1",
+      clientName: "João Silva",
+      clientEmail: "joao@email.com",
+      rentalDate: "20/04/2026",
+      expectedReturn: "27/04/2026",
+      status: "Em andamento",
+    },
+    {
+      id: "2",
+      clientName: "Maria Santos",
+      clientEmail: "maria@email.com",
+      rentalDate: "10/04/2026",
+      expectedReturn: "17/04/2026",
+      status: "Atrasado",
+    },
+    {
+      id: "3",
+      clientName: "Pedro Costa",
+      clientEmail: "pedro@email.com",
+      rentalDate: "05/04/2026",
+      expectedReturn: "12/04/2026",
+      status: "Devolvido",
+    },
+  ],
+}
+
+const STATUS_STYLES: Record<LoanStatus, { bg: string; text: string }> = {
+  "Em andamento": { bg: "bg-yellow-100", text: "text-yellow-800" },
+  "Atrasado":     { bg: "bg-red-100",    text: "text-red-800"    },
+  "Devolvido":    { bg: "bg-emerald-100",text: "text-emerald-800"},
+  "Perdido":      { bg: "bg-gray-100",   text: "text-gray-700"  },
+}
+
+function StatusBadge({ status }: { status: LoanStatus }) {
+  const { bg, text } = STATUS_STYLES[status]
+  return (
+    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${bg} ${text}`}>
+      {status}
+    </span>
+  )
+}
+
+function InfoField({
+  label,
+  value,
+  highlight = false,
+}: {
+  label: string
+  value: string | number
+  highlight?: boolean
+}) {
+  return (
+    <div>
+      <p className="mb-0.5 text-xs text-muted-foreground">{label}</p>
+      <p className={`text-sm font-medium ${highlight ? "text-emerald-600" : ""}`}>
+        {value}
+      </p>
+    </div>
+  )
+}
+
+interface LoanMenuProps {
+  loan: Loan
+  onReminder: (loan: Loan) => void
+  onReturn: (id: string) => void
+  onLost: (id: string) => void
+}
+
+function LoanMenu({ loan, onReminder, onReturn, onLost }: LoanMenuProps) {
+  const [open, setOpen] = React.useState(false)
+  const menuRef = React.useRef<HTMLDivElement>(null)
+
+  React.useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
+
+  function handleAction(action: () => void) {
+    action()
+    setOpen(false)
+  }
+
+  return (
+    <div className="relative" ref={menuRef}>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-7 w-7 text-muted-foreground"
+        onClick={() => setOpen((prev) => !prev)}
+        aria-label="Abrir menu de ações"
+      >
+        <MoreHorizontal className="h-4 w-4" />
+      </Button>
+
+      {open && (
+        <div className="absolute right-0 top-8 z-10 min-w-[160px] overflow-hidden rounded-lg border border-border bg-white shadow-md">
+          {loan.status === "Atrasado" && (
+            <button
+              className="w-full px-4 py-2 text-left text-sm text-foreground hover:bg-muted"
+              onClick={() => handleAction(() => onReminder(loan))}
+            >
+              Enviar Lembrete
+            </button>
+          )}
+          <button
+            className="w-full px-4 py-2 text-left text-sm text-foreground hover:bg-muted"
+            onClick={() => handleAction(() => onReturn(loan.id))}
+          >
+            Livro Devolvido
+          </button>
+          <button
+            className="w-full px-4 py-2 text-left text-sm text-foreground hover:bg-muted"
+            onClick={() => handleAction(() => onLost(loan.id))}
+          >
+            Livro Perdido
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function LoanCard({
+  loan,
+  onReminder,
+  onReturn,
+  onLost,
+}: {
+  loan: Loan
+  onReminder: (loan: Loan) => void
+  onReturn: (id: string) => void
+  onLost: (id: string) => void
+}) {
+  const isOverdue = loan.status === "Atrasado"
+  const hasMenu = loan.status === "Em andamento" || isOverdue
+
+  return (
+    <div className="rounded-lg border border-border bg-background px-4 py-3">
+      <div className="flex items-start justify-between gap-3">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-semibold">{loan.clientName}</span>
+            <StatusBadge status={loan.status} />
+          </div>
+          <p className="text-xs text-muted-foreground">{loan.clientEmail}</p>
+          <p className="text-xs text-muted-foreground">
+            Locação:{" "}
+            <span className="font-medium text-foreground">{loan.rentalDate}</span>
+            {"   "}
+            Previsão:{" "}
+            <span className={`font-medium ${isOverdue ? "text-red-700" : "text-foreground"}`}>
+              {loan.expectedReturn}
+            </span>
+          </p>
+        </div>
+
+        {hasMenu && (
+          <LoanMenu
+            loan={loan}
+            onReminder={onReminder}
+            onReturn={onReturn}
+            onLost={onLost}
+          />
+        )}
+      </div>
+    </div>
+  )
+}
+
+export interface BookDetailsModalProps {
+  open: boolean
+  onClose: () => void
+  book?: Book
+}
+
+export function BookDetailsModal({
+  open,
+  onClose,
+  book = MOCK_BOOK,
+}: BookDetailsModalProps) {
+  const [loans, setLoans] = React.useState<Loan[]>(book.loans)
+
+  React.useEffect(() => {
+    setLoans(book.loans)
+  }, [book.loans])
+
+  React.useEffect(() => {
+    if (!open) return
+    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose() }
+    document.addEventListener("keydown", handler)
+    return () => document.removeEventListener("keydown", handler)
+  }, [open, onClose])
+
+  React.useEffect(() => {
+    document.body.style.overflow = open ? "hidden" : ""
+    return () => { document.body.style.overflow = "" }
+  }, [open])
+
+  if (!open) return null
+
+  function handleReminder(loan: Loan) {
+    alert(`Lembrete enviado para ${loan.clientEmail}`)
+  }
+
+  function handleReturn(id: string) {
+    setLoans((prev) =>
+      prev.map((loan) => loan.id === id ? { ...loan, status: "Devolvido" } : loan)
+    )
+  }
+
+  function handleLost(id: string) {
+    setLoans((prev) =>
+      prev.map((loan) => loan.id === id ? { ...loan, status: "Perdido" } : loan)
+    )
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      onClick={onClose}
+      aria-modal="true"
+      role="dialog"
+      aria-labelledby="modal-title"
+    >
+      <div
+        className="relative flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-xl bg-white shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex shrink-0 items-center justify-between border-b px-6 py-4">
+          <h2 id="modal-title" className="text-base font-semibold text-foreground">
+            Detalhes do Livro
+          </h2>
+          <Button variant="ghost" size="icon" onClick={onClose} aria-label="Fechar">
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+
+        <div className="overflow-y-auto">
+          <div className="flex gap-5 border-b px-6 py-5">
+            <div className="flex h-28 w-20 shrink-0 items-center justify-center rounded-lg border bg-muted">
+              {book.cover ? (
+                <img
+                  src={book.cover}
+                  alt={`Capa de ${book.title}`}
+                  className="h-full w-full rounded-lg object-cover"
+                />
+              ) : (
+                <BookOpen className="h-8 w-8 text-muted-foreground" />
+              )}
+            </div>
+
+            <div className="flex-1 space-y-3">
+              <div>
+                <p className="text-base font-semibold leading-snug">{book.title}</p>
+                <p className="text-sm text-muted-foreground">{book.author}</p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-x-8 gap-y-2.5">
+                <InfoField label="ISBN" value={book.isbn} />
+                <div>
+                  <p className="mb-0.5 text-xs text-muted-foreground">Categoria</p>
+                  <p className="text-sm font-medium text-blue-500">{book.category}</p>
+                </div>
+                <InfoField label="Editora" value={book.publisher} />
+                <InfoField label="Ano" value={book.year} />
+                <InfoField label="Quantidade Total" value={`${book.totalQty} unidades`} />
+                <InfoField
+                  label="Quantidade Disponível"
+                  value={`${book.availableQty} unidades`}
+                  highlight
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="px-6 py-5">
+            <h3 className="mb-3 text-sm font-semibold text-foreground">
+              Histórico de Empréstimos
+            </h3>
+
+            {loans.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Nenhum empréstimo registrado.</p>
+            ) : (
+              <div className="space-y-2.5">
+                {loans.map((loan) => (
+                  <LoanCard
+                    key={loan.id}
+                    loan={loan}
+                    onReminder={handleReminder}
+                    onReturn={handleReturn}
+                    onLost={handleLost}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
