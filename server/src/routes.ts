@@ -22,5 +22,6 @@ routes.get("/emprestimos", emprestimoController.listar);
 routes.get("/emprestimos/livro/:bookId", emprestimoController.listarPorLivro);
 routes.post("/emprestimos", emprestimoController.registrar);
 routes.patch("/emprestimos/:id", emprestimoController.devolver);
+routes.patch("/emprestimos/:id/perdido", emprestimoController.marcarPerdido);
 
 export default routes;
