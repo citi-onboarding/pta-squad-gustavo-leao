@@ -7,6 +7,7 @@ class EmprestimoController {
   private computeStatus(loan: Loan): Loan {
     if (
       loan.status !== LoanStatus.Devolvido &&
+      loan.status !== LoanStatus.Perdido &&
       new Date() > loan.expectedReturn
     ) {
       return { ...loan, status: LoanStatus.Atrasado };
@@ -113,6 +114,41 @@ class EmprestimoController {
       prisma.book.update({
         where: { id: loan.bookId },
         data: { availableQty: { increment: 1 } },
+      }),
+    ]);
+
+    return response.status(200).send(updatedLoan);
+  };
+
+  marcarPerdido = async (request: Request, response: Response) => {
+    // Marks the loan as Perdido and decrements total stock.
+    const { id } = request.params;
+
+    const loan = await prisma.loan.findUnique({ where: { id } });
+
+    if (!loan)
+      return response
+        .status(400)
+        .send({ message: "Emprestimo nao encontrado." });
+
+    if (loan.status === LoanStatus.Perdido)
+      return response
+        .status(400)
+        .send({ message: "Emprestimo ja marcado como perdido." });
+
+    if (loan.status === LoanStatus.Devolvido)
+      return response
+        .status(400)
+        .send({ message: "Emprestimo ja devolvido." });
+
+    const [updatedLoan] = await prisma.$transaction([
+      prisma.loan.update({
+        where: { id },
+        data: { status: LoanStatus.Perdido },
+      }),
+      prisma.book.update({
+        where: { id: loan.bookId },
+        data: { totalQty: { decrement: 1 } },
       }),
     ]);
 

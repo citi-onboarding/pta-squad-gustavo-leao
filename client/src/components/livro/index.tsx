@@ -4,17 +4,29 @@ import { Bookmark, Eye, Trash2 } from "lucide-react";
 
 import { Button } from "../ui/button";
 
+import { EmprestimoForm } from "../emprestimo";
+
 interface CardLivroProps {
+    cover?: string;
     title?: string;
-    autor?: string;
+    author?: string;
     category?: string;
     totalQty?: number;
 }
 
-export function CardLivro({ title = "Clean Code", autor = "Robert C. Martin", category = "Tecnologia", totalQty = 5 }: CardLivroProps) {   // default values
+export function CardLivro({ cover, title, author, category, totalQty }: CardLivroProps) {
     const [isOpenEmprestimo, setIsOpenEmprestimo] = useState(false);
     const [isOpenDetalhe, setIsOpenDetalhes] = useState(false);
 
+    const categoryImages: Record<string, string> = {
+        Romance: "/assets/Romance.png",
+        Infantil: "/assets/Infantil.png",
+        Tecnologia: "/assets/Tecnologia.png",
+        Historia: "/assets/Historia.png",
+        Ciencias: "/assets/Ciencias.png"
+    };
+
+    const bookImage = cover ?? categoryImages[category ?? ""];
 
     const onLoan = () => { setIsOpenEmprestimo(true) }
 
@@ -26,12 +38,12 @@ export function CardLivro({ title = "Clean Code", autor = "Robert C. Martin", ca
         <div>
             <div className="w-80 h-auto flex-col rounded-lg shadow-lg"> {/* CardLivro */}
                 <div className="w-full h-48 bg-gray-100 rounded-t-lg">
-                    {/* Image here */}
+                    <img src={bookImage} alt={title} className="w-full h-48 object-cover rounded-t-lg"/>
                 </div>
 
                 <div className="flex-col gap-2 px-4 py-2">
                     <p className="text-lg text-black font-medium">{title}</p>
-                    <p className=" text-gray-700">{autor}</p>
+                    <p className=" text-gray-700">{author}</p>
                     <p className="text-sm text-green-400">{category}</p>
                     <p className="text-sm">Disponível: {totalQty} unidade(s)</p>
                 </div>
@@ -41,7 +53,7 @@ export function CardLivro({ title = "Clean Code", autor = "Robert C. Martin", ca
                         <Eye></Eye>Ver
                     </Button>
 
-                    <Button onClick={onLoan} className="flex-1 bg-green-400 text-md">
+                    <Button onClick={onLoan} className="flex-1 bg-green-400 text-md hover:bg-green-600">
                         <Bookmark></Bookmark>Emprestar
                     </Button>
 
@@ -54,7 +66,9 @@ export function CardLivro({ title = "Clean Code", autor = "Robert C. Martin", ca
 
             {isOpenEmprestimo && ( // EmprestimoForm
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    {/* Call EmprestimoForm here */}
+                    <EmprestimoForm 
+                    title={title} 
+                    onClose={() => setIsOpenEmprestimo(false)}/>
                 </div>
             )}
 
