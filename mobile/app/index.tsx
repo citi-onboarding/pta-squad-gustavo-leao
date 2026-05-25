@@ -1,9 +1,22 @@
-// React hooks for state and derived values.
+
 import { useMemo, useState } from "react";
-// Core React Native components for layout and interaction.
-import { ScrollView, Text, TextInput, View, Pressable } from "react-native";
-// CITi logo imported from the assets package.
-import { citi as CitiLogo } from "@assets";
+import {
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+  Pressable,
+  Image,
+  ImageSourcePropType,
+} from "react-native";
+import { Calendar } from "lucide-react-native";
+import {
+  logoCopy,
+  historia,
+  ciencias,
+  romance,
+  tecnologia,
+} from "@assets";
 
 // Allowed status values to keep typing consistent.
 type LoanStatus = "Devolvido" | "Em andamento" | "Atrasado";
@@ -11,83 +24,103 @@ type LoanStatus = "Devolvido" | "Em andamento" | "Atrasado";
 // Data shape for a loan shown in a card.
 interface LoanItem {
   id: string;
-  bookTitle: string;
+  title: string;
   clientName: string;
+  clientEmail: string;
+  cover: ImageSourcePropType;
   rentalDate: string;
   expectedReturn: string;
   status: LoanStatus;
 }
 
-// Mock data for Sprint 2; API integration comes in the next sprint.
+// Mock data for Sprint 2 API integration comes in the next sprint.
 const LOANS: LoanItem[] = [
   {
     id: "1",
-    bookTitle: "Dom Casmurro",
+    title: "Dom Casmurro",
     clientName: "João Silva",
+    clientEmail: "joao.silva@email.com",
+    cover: romance,
     rentalDate: "02/03/2026",
     expectedReturn: "12/03/2026",
     status: "Devolvido",
   },
   {
     id: "2",
-    bookTitle: "Clean Code",
+    title: "Clean Code",
     clientName: "João Silva",
+    clientEmail: "joao.silva@email.com",
+    cover: tecnologia,
     rentalDate: "15/04/2026",
     expectedReturn: "30/04/2026",
     status: "Em andamento",
   },
   {
     id: "3",
-    bookTitle: "História do Brasil",
+    title: "História do Brasil",
     clientName: "João Silva",
+    clientEmail: "joao.silva@email.com",
+    cover: historia,
     rentalDate: "01/03/2026",
     expectedReturn: "10/03/2026",
     status: "Atrasado",
   },
   {
     id: "4",
-    bookTitle: "Introdução à Ciência",
+    title: "Introdução à Ciência",
     clientName: "João Silva",
+    clientEmail: "joao.silva@email.com",
+    cover: ciencias,
     rentalDate: "20/04/2026",
     expectedReturn: "05/05/2026",
     status: "Em andamento",
   },
   {
     id: "5",
-    bookTitle: "O Pequeno Príncipe",
+    title: "O Pequeno Príncipe",
     clientName: "João Silva",
+    clientEmail: "joao.silva@email.com",
+    cover: romance,
     rentalDate: "10/03/2026",
     expectedReturn: "20/03/2026",
     status: "Devolvido",
   },
   {
     id: "6",
-    bookTitle: "Capitaes da Areia",
+    title: "Capitaes da Areia",
     clientName: "Pedro Siqueira",
+    clientEmail: "pedro.siqueira@email.com",
+    cover: romance,
     rentalDate: "08/05/2026",
     expectedReturn: "18/05/2026",
     status: "Em andamento",
   },
   {
     id: "7",
-    bookTitle: "A Revolucao dos Bichos",
+    title: "A Revolucao dos Bichos",
     clientName: "Pedro Siqueira",
+    clientEmail: "pedro.siqueira@email.com",
+    cover: historia,
     rentalDate: "01/04/2026",
     expectedReturn: "11/04/2026",
     status: "Devolvido",
   },
   {
     id: "8",
-    bookTitle: "Vidas Secas",
+    title: "Vidas Secas",
     clientName: "Gustavo Leao",
+    clientEmail: "gustavo.leao@email.com",
+    cover: romance,
     rentalDate: "12/05/2026",
     expectedReturn: "22/05/2026",
     status: "Em andamento",
   },
   {
     id: "9",
-    bookTitle: "Memorias Postumas",
+    title: "Memorias Postumas",
     clientName: "Gustavo Leao",
+    clientEmail: "gustavo.leao@email.com",
+    cover: historia,
     rentalDate: "14/03/2026",
     expectedReturn: "24/03/2026",
     status: "Atrasado",
@@ -115,16 +148,20 @@ const App: React.FC = () => {
     [results.length]
   );
 
-  // Applies a local filter by client name while there is no API.
+  // Applies a local filter by client email while there is no API.
   const handleSearch = () => {
     // Normalizes the term to avoid case differences.
     const term = searchTerm.trim().toLowerCase();
-    // If there is a term, filter by client name; otherwise return all.
-    const filtered = term.length
-      ? LOANS.filter((loan) =>
-          loan.clientName.toLowerCase().includes(term)
-        )
-      : LOANS;
+    // If there is a term, filter by client email; otherwise return all.
+    let filtered: LoanItem[];
+
+    if (term.length) {
+      filtered = LOANS.filter(
+        (loan) => loan.clientEmail.toLowerCase() === term
+      );
+    } else {
+      filtered = [];
+    }
 
     // Updates the list and allows results to render.
     setResults(filtered);
@@ -138,18 +175,20 @@ const App: React.FC = () => {
       contentContainerStyle={{ paddingBottom: 28 }}
     >
       <View className="px-5 pt-4">
-        {/* Header with logo and page title */}
         <View className="flex-row items-center gap-3">
-          <CitiLogo width={40} height={40} />
+          <Image
+            source={logoCopy}
+            style={{ width: 72, height: 32 }}
+            resizeMode="contain"
+          />
           <Text className="text-xl font-barlowBold text-emerald-600">
             Meus Empréstimos
           </Text>
         </View>
 
-        {/* Search field and button to trigger filtering */}
         <View className="mt-5">
           <TextInput
-            placeholder="Nome do cliente"
+            placeholder="Email do cliente"
             value={searchTerm}
             onChangeText={setSearchTerm}
             className="rounded-xl border border-gray-200 bg-white px-4 py-3 text-[15px] font-barlowRegular"
@@ -164,43 +203,54 @@ const App: React.FC = () => {
           </Pressable>
         </View>
 
-        {/* Shows the total count after the search */}
         {hasSearched && (
           <Text className="mt-5 text-sm font-barlowRegular text-gray-500">
             {totalLabel}
           </Text>
         )}
 
-        {/* Cards list with filtered loans */}
         {hasSearched && (
           <View className="mt-4 gap-4">
             {results.map((loan) => (
               <View
                 key={loan.id}
-                className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm"
+                className="rounded-2xl border border-slate-200 bg-white p-2 shadow-sm"
               >
-                {/* Book title */}
-                <Text className="text-base font-barlowSemiBold text-gray-900">
-                  {loan.bookTitle}
-                </Text>
-                <View className="mt-2">
-                  {/* Badge color is defined by status */}
-                  <Text
-                    className={`self-start rounded-full px-2.5 py-1 text-xs font-barlowSemiBold ${
-                      statusBadgeStyles[loan.status]
-                    }`}
-                  >
-                    {loan.status}
-                  </Text>
-                </View>
-                {/* Rental and return dates */}
-                <View className="mt-3 gap-1">
-                  <Text className="text-sm font-barlowRegular text-gray-500">
-                    Locação: {loan.rentalDate}
-                  </Text>
-                  <Text className="text-sm font-barlowRegular text-gray-500">
-                    Devolução: {loan.expectedReturn}
-                  </Text>
+                <View className="flex-row gap-2">
+                  <Image
+                    source={loan.cover}
+                    className="rounded-lg"
+                    style={{ width: 84, height: 112 }}
+                    resizeMode="cover"
+                  />
+                  <View className="flex-1">
+                    <Text className="text-sm font-barlowSemiBold text-slate-800">
+                      {loan.title}
+                    </Text>
+                    <View className="mt-3">
+                      <Text
+                        className={`self-start rounded-full px-2.5 py-1 text-xs font-barlowSemiBold ${
+                          statusBadgeStyles[loan.status]
+                        }`}
+                      >
+                        {loan.status}
+                      </Text>
+                    </View>
+                    <View className="mt-3 gap-2">
+                      <View className="flex-row items-center gap-2">
+                        <Calendar size={14} color="#94A3B8" />
+                        <Text className="text-sm font-barlowRegular text-slate-600">
+                          Locação: {loan.rentalDate}
+                        </Text>
+                      </View>
+                      <View className="flex-row items-center gap-2">
+                        <Calendar size={14} color="#94A3B8" />
+                        <Text className="text-sm font-barlowRegular text-slate-600">
+                          Devolução: {loan.expectedReturn}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
                 </View>
               </View>
             ))}
