@@ -6,6 +6,8 @@ import { Button } from "../ui/button";
 
 import { EmprestimoForm } from "../emprestimo";
 
+import { BookDetailsModal } from "../detalhes";
+
 interface CardLivroProps {
     cover?: string;
     title?: string;
@@ -74,7 +76,9 @@ export function CardLivro({ cover, title, author, category, totalQty }: CardLivr
 
             {isOpenDetalhe && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    {/* Call Detalhes here */}
+                    <BookDetailsModal
+                        open={isOpenDetalhe}
+                        onClose={() => setIsOpenDetalhes(false)}/>
                 </div>
             )}
 
