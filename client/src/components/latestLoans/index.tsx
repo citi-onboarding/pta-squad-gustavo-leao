@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
-type LoanStatus = "Em andamento" | "Atrasado" | "Devolvido";
+type LoanStatus = "Em andamento" | "Atrasado" | "Devolvido" | "Perdido";
 
 interface Loan {
   id: string;
@@ -52,6 +52,7 @@ const STATUS_STYLES: Record<LoanStatus, string> = {
   "Em andamento": "bg-amber-100 text-amber-700",
   "Atrasado": "bg-rose-100 text-rose-700",
   "Devolvido": "bg-emerald-100 text-emerald-700",
+  "Perdido": "bg-cyan-100 text-cyan-800"
 };
 
 function StatusBadge({ status }: { status: LoanStatus }) {
