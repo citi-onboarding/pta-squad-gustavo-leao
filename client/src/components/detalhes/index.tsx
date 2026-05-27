@@ -1,6 +1,7 @@
 import * as React from "react"
 import { X, BookOpen, MoreHorizontal } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { sendLoanReminder } from "@/service/loanReminder"
 
 type LoanStatus = "Em andamento" | "Atrasado" | "Devolvido" | "Perdido"
 
@@ -242,8 +243,13 @@ export function BookDetailsModal({
 
   if (!open) return null
 
-  function handleReminder(loan: Loan) {
-    alert(`Lembrete enviado para ${loan.clientEmail}`)
+  async function handleReminder(loan: Loan) {
+    try {
+      await sendLoanReminder(loan.id)
+      alert(`Lembrete enviado para ${loan.clientEmail}`)
+    } catch (err: any) {
+      alert(err?.message || 'Erro ao enviar lembrete.')
+    }
   }
 
   function handleReturn(id: string) {
