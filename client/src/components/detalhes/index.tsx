@@ -46,9 +46,9 @@ const MOCK_BOOK: Book = {
       status: "Em andamento",
     },
     {
-      id: "2",
+      id: "e0efbb51-339d-44f6-8721-fd58dfb6a444",
       clientName: "Maria Santos",
-      clientEmail: "maria@email.com",
+      clientEmail: "gustavo.leao@citi.org.br",
       rentalDate: "10/04/2026",
       expectedReturn: "17/04/2026",
       status: "Atrasado",
