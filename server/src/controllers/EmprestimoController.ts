@@ -1,8 +1,11 @@
 import { Request, Response } from "express";
 import { Loan, LoanStatus } from "@prisma/client";
 import prisma from "@database";
+import emailService from "../services/EmailService";
 
 class EmprestimoController {
+  private readonly emailService = emailService;
+
   // Computes the dynamic status before responding.
   private computeStatus(loan: Loan): Loan {
     if (
@@ -153,6 +156,48 @@ class EmprestimoController {
     ]);
 
     return response.status(200).send(updatedLoan);
+  };
+
+  lembrete = async (request: Request, response: Response) => {
+    // Sends a reminder email for overdue loans.
+    const { id } = request.params;
+
+    const loan = await prisma.loan.findUnique({
+      where: { id },
+      include: { book: true },
+    });
+
+    if (!loan)
+      return response
+        .status(400)
+        .send({ message: "Emprestimo nao encontrado." });
+
+    const computedStatus = this.computeStatus(loan as Loan);
+
+    if (computedStatus.status !== LoanStatus.Atrasado)
+      return response
+        .status(400)
+        .send({ message: "Emprestimo nao esta atrasado." });
+
+    const expectedReturn = loan.expectedReturn.toISOString().split("T")[0];
+
+    try {
+      await this.emailService.sendReminder({
+        to: loan.clientEmail,
+        clientName: loan.clientName,
+        bookTitle: loan.book.title,
+        expectedReturn,
+      });
+    } catch (error) {
+      if (error instanceof Error && error.message === "SMTP_CONFIG_MISSING")
+        return response
+          .status(500)
+          .send({ message: "Configuracao SMTP ausente." });
+
+      return response.status(500).send({ message: "Falha ao enviar email." });
+    }
+
+    return response.status(200).send({ message: "Lembrete enviado." });
   };
 }
 
