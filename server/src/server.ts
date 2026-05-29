@@ -1,3 +1,4 @@
+
 import routes from "./routes";
 import dotenv from "dotenv";
 import express from "express";
@@ -9,7 +10,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: "*",
   })
 );
 app.use(express.json());
