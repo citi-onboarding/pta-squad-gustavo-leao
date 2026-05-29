@@ -9,14 +9,16 @@ import { EmprestimoForm } from "../emprestimo";
 import { BookDetailsModal } from "../detalhes";
 
 interface CardLivroProps {
+    id?: string;
     cover?: string;
     title?: string;
     author?: string;
     category?: string;
     totalQty?: number;
+    onDelete?: (id: string) => void;
 }
 
-export function CardLivro({ cover, title, author, category, totalQty }: CardLivroProps) {
+export function CardLivro({ id, cover, title, author, category, totalQty, onDelete }: CardLivroProps) {
     const [isOpenEmprestimo, setIsOpenEmprestimo] = useState(false);
     const [isOpenDetalhe, setIsOpenDetalhes] = useState(false);
 
@@ -34,7 +36,12 @@ export function CardLivro({ cover, title, author, category, totalQty }: CardLivr
 
     const onDetails = () => { setIsOpenDetalhes(true) }
 
-    const onDelete = () => { console.log("Deletar livro chamado!") }
+
+    const handleDelete = () => {
+        if (id && onDelete) {
+            onDelete(id);
+        }
+    }
 
     return(
         <div>
@@ -59,7 +66,7 @@ export function CardLivro({ cover, title, author, category, totalQty }: CardLivr
                         <Bookmark></Bookmark>Emprestar
                     </Button>
 
-                    <Button onClick={onDelete} variant={"destructive"}>
+                    <Button onClick={handleDelete} variant={"destructive"}>
                         <Trash2></Trash2>
                     </Button>
                 </div>
