@@ -1,15 +1,23 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell, ResponsiveContainer } from "recharts";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-const chartData = [
-  { category: "Romance", totalQty: 230 },
-  { category: "Tecnologia", totalQty: 310 },
-  { category: "História", totalQty: 175 },
-  { category: "Ciências", totalQty: 265 },
-  { category: "Infantil", totalQty: 140 },
-];
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { getAllLivros, type Category } from "@/service/livro";
+
+interface ChartDatum {
+  category: string;
+  totalQty: number;
+}
+
+const CATEGORY_DISPLAY: Record<Category, string> = {
+  Romance: "Romance",
+  Tecnologia: "Tecnologia",
+  Historia: "História",
+  Ciencias: "Ciências",
+  Infantil: "Infantil",
+};
 
 const CATEGORY_COLORS: Record<string, string> = {
   Romance: "bar-romance",
@@ -42,11 +50,43 @@ const CustomTooltip = ({
   return null;
 };
 
-
 export function ChartByCategory() {
+  const [chartData, setChartData] = useState<ChartDatum[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const livros = await getAllLivros();
+
+        // Agrupa por categoria somando totalQty
+        const totalsByCategory: Record<string, number> = {};
+        for (const livro of livros) {
+          const displayName = CATEGORY_DISPLAY[livro.category] ?? livro.category;
+          totalsByCategory[displayName] =
+            (totalsByCategory[displayName] ?? 0) + livro.totalQty;
+        }
+
+        // Mantém uma ordem estável das categorias
+        const orderedCategories = Object.values(CATEGORY_DISPLAY);
+        const data = orderedCategories
+          .map((cat) => ({
+            category: cat,
+            totalQty: totalsByCategory[cat] ?? 0,
+          }))
+          .filter((d) => d.totalQty > 0);
+
+        setChartData(data);
+      } catch (error) {
+        console.error("Erro ao buscar livros:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
   return (
     <Card className="w-full">
-        <style>{`
+      <style>{`
         .bar-romance    { fill: hsl(var(--chart-1)); }
         .bar-tecnologia { fill: hsl(var(--chart-2)); }
         .bar-historia   { fill: hsl(var(--chart-3)); }
@@ -54,23 +94,18 @@ export function ChartByCategory() {
         .bar-infantil   { fill: hsl(var(--chart-5)); }
 
         .recharts-cartesian-grid-horizontal line {
-        stroke: hsl(var(--border));
-        stroke-dasharray: 4 4;
-        }
-        
-        .recharts-cartesian-axis-line {
-        stroke: hsl(var(--border));
+          stroke: hsl(var(--border));
+          stroke-dasharray: 4 4;
         }
 
+        .recharts-cartesian-axis-line { stroke: hsl(var(--border)); }
+
         .recharts-bar-rectangle path {
-        transition: transform 0.2s ease;
-        transform-origin: bottom;
+          transition: transform 0.2s ease;
+          transform-origin: bottom;
         }
-        .recharts-bar-rectangle:hover path {
-        transform: scaleY(1.008);
-        }
-      `}
-      </style>
+        .recharts-bar-rectangle:hover path { transform: scaleY(1.008); }
+      `}</style>
       <CardHeader>
         <CardTitle className="text-base font-semibold">
           Livros por Categoria
@@ -78,40 +113,43 @@ export function ChartByCategory() {
       </CardHeader>
       <CardContent>
         <div className="w-full h-48 sm:h-64 md:h-80">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart
-            data={chartData}
-            margin={{ top: 8, right: 16, left: 0, bottom: 0 }}
-            barCategoryGap="15%" 
-            barGap={8}
-          >
-            <CartesianGrid vertical={false} stroke="var(--border)" />
-            <XAxis
-              dataKey="category"
-              axisLine={true}
-              tickLine={false}
-              tick={{ fontSize: 12, fill: "var(--muted-foreground)" }}
-            />
-            <YAxis
-              axisLine={true}
-              tickLine={false}
-              tick={{ fontSize: 12, fill: "var(--muted-foreground)" }}
-              domain={[0, "auto"]}
-            />
-            <Tooltip
-              content={<CustomTooltip />}
-              cursor={false}
-            />
-            <Bar dataKey="totalQty" radius={[6, 6, 0, 0]}>
-              {chartData.map((entry) => (
-                <Cell
-                  key={entry.category}
-                  className={CATEGORY_COLORS[entry.category]}
+          {chartData.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              Nenhum livro cadastrado ainda.
+            </p>
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={chartData}
+                margin={{ top: 8, right: 16, left: 0, bottom: 0 }}
+                barCategoryGap="15%"
+                barGap={8}
+              >
+                <CartesianGrid vertical={false} stroke="var(--border)" />
+                <XAxis
+                  dataKey="category"
+                  axisLine={true}
+                  tickLine={false}
+                  tick={{ fontSize: 12, fill: "var(--muted-foreground)" }}
                 />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
+                <YAxis
+                  axisLine={true}
+                  tickLine={false}
+                  tick={{ fontSize: 12, fill: "var(--muted-foreground)" }}
+                  domain={[0, "auto"]}
+                />
+                <Tooltip content={<CustomTooltip />} cursor={false} />
+                <Bar dataKey="totalQty" radius={[6, 6, 0, 0]}>
+                  {chartData.map((entry) => (
+                    <Cell
+                      key={entry.category}
+                      className={CATEGORY_COLORS[entry.category]}
+                    />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          )}
         </div>
       </CardContent>
     </Card>

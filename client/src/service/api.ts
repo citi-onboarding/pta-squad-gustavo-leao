@@ -1,4 +1,3 @@
-import exp from "constants";
 import axios from "axios";
 
 const api = axios.create({
