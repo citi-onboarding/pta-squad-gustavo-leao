@@ -181,6 +181,10 @@ function LoanCard({
   const isOverdue = loan.status === "Atrasado"
   const hasMenu = loan.status === "EmAndamento" || isOverdue
 
+  function formatDate(dateString: string) {
+    return new Date(dateString).toLocaleDateString("pt-BR");
+}
+
   return (
     <div className="rounded-lg border border-border bg-background px-4 py-3">
       <div className="flex items-start justify-between gap-3">
@@ -191,12 +195,12 @@ function LoanCard({
           </div>
           <p className="text-xs text-muted-foreground">{loan.clientEmail}</p>
           <p className="text-xs text-muted-foreground">
-            Locação:{" "}
-            <span className="font-medium text-foreground">{loan.rentalDate}</span>
+            Data de locação:{" "}
+            <span className="font-medium text-foreground">{formatDate(loan.rentalDate)}</span>
             {"   "}
-            Previsão:{" "}
+            Previsão de retorno:{" "}
             <span className={`font-medium ${isOverdue ? "text-red-700" : "text-foreground"}`}>
-              {loan.expectedReturn}
+              {formatDate(loan.expectedReturn)}
             </span>
           </p>
         </div>
