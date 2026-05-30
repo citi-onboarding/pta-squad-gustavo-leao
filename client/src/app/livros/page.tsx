@@ -82,6 +82,7 @@ export default function LivrosPage() {
                     {livrosFiltrados.map((livro) => (
                         <CardLivro
                             key={livro.id}
+                            id={livro.id}
                             title={livro.title}
                             author={livro.author}
                             category={livro.category}
