@@ -11,7 +11,9 @@
   "dependencies": {
     "@babel/runtime": "^7.27.1",
     "@expo-google-fonts/barlow": "^0.2.3",
+    "axios": "^1.16.1",
     "babel-preset-expo": "^13.1.11",
+    "cors": "^2.8.5",
     "expo": "^53.0.7",
     "expo-asset": "^11.1.5",
     "expo-constants": "~17.1.5",
@@ -44,6 +46,7 @@
   "devDependencies": {
     "@babel/core": "^7.27.1",
     "@types/react": "~19.0.14",
+    "@types/cors": "^2.8.17",
     "babel-loader": "^9.2.1",
     "babel-plugin-module-resolver": "^5.0.2",
     "react-native-svg-transformer": "^1.5.1",
