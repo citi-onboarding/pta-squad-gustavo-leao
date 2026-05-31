@@ -271,6 +271,7 @@ export function BookDetailsModal({
 
   async function handleReturn(id: string) {
     await patchDevolver(id);
+    alert("Empréstimo marcado como devolvido.");
     setLoans((prev) =>
       prev.map((loan) => loan.id === id ? { ...loan, status: "Devolvido" } : loan)
     )
@@ -278,6 +279,7 @@ export function BookDetailsModal({
 
   async function handleLost(id: string) {
     await patchPerdido(id);
+    alert("Empréstimo marcado como perdido.");
     setLoans((prev) =>
       prev.map((loan) => loan.id === id ? { ...loan, status: "Perdido" } : loan)
     )
