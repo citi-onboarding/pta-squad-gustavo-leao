@@ -3,6 +3,8 @@ import { Button } from "../ui/button";
 
 import { useForm } from "react-hook-form";
 
+import { postBook } from "../../service/livro";
+
 export interface formDataProps { // I used export interface to facilitate lift state up later
     title: string,
     author: string,
@@ -23,13 +25,17 @@ export function Form() {
         reset();
     }
 
-    const onSubmit = (data: formDataProps) => {
+    const onSubmit = async (data: formDataProps) => {
         if (!data.category) { // prevents the user from submitting the form without clicking on any category
         setError("category", { message: "*Selecione uma categoria" });
         return;
         }
-        console.log(data);
-        reset(); // clears all fields when the form is submitted
+        try {
+            await postBook(data);
+            reset(); 
+        } catch (error) {
+            console.error(error);
+        }
     };
 
     // className="w-1/2 h-1/4 p-8 gap-2"
@@ -80,8 +86,9 @@ export function Form() {
                         <input placeholder="Digite o ano" className="w-full rounded-lg border p-2 outline-none focus:ring-2 focus:ring-green-400"
                         {...register("year", 
                         {required: "*Este é um campo obrigatório",
+                         valueAsNumber: true,
                          validate: (value) => value >= 0 || "*Ano não pode ser negativo"
-                        })}/>
+                         })}/>
                         {errors.year && <span className="text-red-500 text-sm">{errors.year.message}</span>}
                     </div>
 
@@ -90,7 +97,9 @@ export function Form() {
                         <input placeholder="Digite a quantidade" className="w-full rounded-lg border p-2 outline-none focus:ring-2 focus:ring-green-400"
                         {...register("totalQty", 
                             {required: "*Este é um campo obrigatório",
-                            validate: (value) => value >= 0 || "*Quantidade não pode ser negativa"})}/>
+                             valueAsNumber: true, 
+                             validate: (value) => value >= 0 || "*Quantidade não pode ser negativa"
+                            })}/>
                         {errors.totalQty && <span className="text-red-500 text-sm">{errors.totalQty.message}</span>}
                     </div>
                 </div>
