@@ -32,6 +32,7 @@ export function Form() {
         }
         try {
             await postBook(data);
+            alert("Livro criado com sucesso!");
             reset(); 
         } catch (error) {
             console.error(error);
