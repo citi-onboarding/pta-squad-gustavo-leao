@@ -26,7 +26,9 @@ export function EmprestimoForm({ onClose, title, bookId }: EmprestimoFormProps) 
     const onSubmit = async (data: emprestimoDataProps) => {
             try {
                 await postEmprestimo({ ...data, bookId });
+                alert("Empréstimo realizado com sucesso")
                 reset(); 
+                onClose?.();
             } catch (error) {
             console.error(error);
             }
