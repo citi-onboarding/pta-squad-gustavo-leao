@@ -1,9 +1,13 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { getAllEmprestimos, type LoanStatus } from "@/service/emprestimo";
+import { getAllLivros } from "@/service/livro";
 
-type LoanStatus = "Em andamento" | "Atrasado" | "Devolvido" | "Perdido";
-
-interface Loan {
+interface LoanRow {
   id: string;
   book: string;
   client: string;
@@ -12,47 +16,18 @@ interface Loan {
   status: LoanStatus;
 }
 
-// Mock — integração com API ocorre na Sprint 3
-const mockLoans: Loan[] = [
-  {
-    id: "1",
-    book: "Clean Code",
-    client: "João Silva",
-    loanDate: "20/04/2026",
-    returnDate: "27/04/2026",
-    status: "Em andamento",
-  },
-  {
-    id: "2",
-    book: "O Pequeno Príncipe",
-    client: "Maria Santos",
-    loanDate: "18/04/2026",
-    returnDate: "25/04/2026",
-    status: "Atrasado",
-  },
-  {
-    id: "3",
-    book: "Dom Casmurro",
-    client: "Pedro Costa",
-    loanDate: "15/04/2026",
-    returnDate: "22/04/2026",
-    status: "Devolvido",
-  },
-  {
-    id: "4",
-    book: "JavaScript: The Good Parts",
-    client: "Ana Oliveira",
-    loanDate: "22/04/2026",
-    returnDate: "29/04/2026",
-    status: "Em andamento",
-  },
-];
+const STATUS_LABEL: Record<LoanStatus, string> = {
+  EmAndamento: "Em andamento",
+  Atrasado: "Atrasado",
+  Devolvido: "Devolvido",
+  Perdido: "Perdido",
+};
 
 const STATUS_STYLES: Record<LoanStatus, string> = {
-  "Em andamento": "bg-amber-100 text-amber-700",
-  "Atrasado": "bg-rose-100 text-rose-700",
-  "Devolvido": "bg-emerald-100 text-emerald-700",
-  "Perdido": "bg-cyan-100 text-cyan-800"
+  EmAndamento: "bg-amber-100 text-amber-700",
+  Atrasado: "bg-rose-100 text-rose-700",
+  Devolvido: "bg-emerald-100 text-emerald-700",
+  Perdido: "bg-cyan-100 text-cyan-800",
 };
 
 function StatusBadge({ status }: { status: LoanStatus }) {
@@ -63,12 +38,55 @@ function StatusBadge({ status }: { status: LoanStatus }) {
         STATUS_STYLES[status]
       )}
     >
-      {status}
+      {STATUS_LABEL[status]}
     </span>
   );
 }
 
+function formatDate(iso: string): string {
+  const d = new Date(iso);
+  return d.toLocaleDateString("pt-BR");
+}
+
 export function LatestLoans() {
+  const [loans, setLoans] = useState<LoanRow[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [emprestimos, livros] = await Promise.all([
+          getAllEmprestimos(),
+          getAllLivros(),
+        ]);
+
+        // Mapa de id -> título pra cruzar rapidamente
+        const livrosById = new Map(livros.map((l) => [l.id, l.title]));
+
+        const rows: LoanRow[] = emprestimos
+          .sort(
+            (a, b) =>
+              new Date(b.rentalDate).getTime() -
+              new Date(a.rentalDate).getTime()
+          )
+          .slice(0, 4)
+          .map((e) => ({
+            id: e.id,
+            book: livrosById.get(e.bookId) ?? "—",
+            client: e.clientName,
+            loanDate: formatDate(e.rentalDate),
+            returnDate: formatDate(e.expectedReturn),
+            status: e.status,
+          }));
+
+        setLoans(rows);
+      } catch (error) {
+        console.error("Erro ao buscar empréstimos:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
   return (
     <Card className="w-full">
       <CardHeader>
@@ -89,17 +107,25 @@ export function LatestLoans() {
               </tr>
             </thead>
             <tbody>
-              {mockLoans.map((loan) => (
-                <tr key={loan.id} className="border-b last:border-0">
-                  <td className="py-3 text-foreground">{loan.book}</td>
-                  <td className="py-3 text-muted-foreground">{loan.client}</td>
-                  <td className="py-3 text-muted-foreground">{loan.loanDate}</td>
-                  <td className="py-3 text-muted-foreground">{loan.returnDate}</td>
-                  <td className="py-3">
-                    <StatusBadge status={loan.status} />
+              {loans.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="py-6 text-center text-muted-foreground">
+                    Nenhum empréstimo registrado.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                loans.map((loan) => (
+                  <tr key={loan.id} className="border-b last:border-0">
+                    <td className="py-3 text-foreground">{loan.book}</td>
+                    <td className="py-3 text-muted-foreground">{loan.client}</td>
+                    <td className="py-3 text-muted-foreground">{loan.loanDate}</td>
+                    <td className="py-3 text-muted-foreground">{loan.returnDate}</td>
+                    <td className="py-3">
+                      <StatusBadge status={loan.status} />
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
