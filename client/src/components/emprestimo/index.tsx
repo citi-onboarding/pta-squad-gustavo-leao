@@ -2,7 +2,10 @@ import { useForm } from "react-hook-form";
 
 import { Button } from "../ui/button";
 
+import { postEmprestimo } from "../../service/emprestimo";
+
 export interface emprestimoDataProps {
+    bookId?: string;
     title: string;
     clientName: string;
     clientEmail: string;
@@ -13,16 +16,21 @@ export interface emprestimoDataProps {
 interface EmprestimoFormProps {
     onClose?: () => void; // auxiliary function that will run a close protocol when integrated with the main-component
     title?: string; // gets book's title to fill the input automatically when the user clicks on "Emprestar"
+    bookId?: string
 }
-export function EmprestimoForm({ onClose, title }: EmprestimoFormProps) {
+export function EmprestimoForm({ onClose, title, bookId }: EmprestimoFormProps) {
     const { register, handleSubmit, reset, formState: { errors } } = useForm<emprestimoDataProps>()
 
     const selectedBook = title;
 
-    const onSubmit = (data: emprestimoDataProps) => {
-            console.log(data);
-            reset(); // clears all fields when the form is submitted
-            onClose?.(); 
+    const onSubmit = async (data: emprestimoDataProps) => {
+            try {
+                await postEmprestimo({ ...data, bookId });
+                reset(); 
+            } catch (error) {
+            console.error(error);
+            }
+
         };
     
     const onCancel = () => {

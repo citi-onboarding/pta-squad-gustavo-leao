@@ -1,4 +1,5 @@
-import api from "./api";
+import api from './api';
+import { emprestimoDataProps } from '../components/emprestimo';
 
 export type LoanStatus = "EmAndamento" | "Devolvido" | "Atrasado" | "Perdido";
 
@@ -10,6 +11,16 @@ export interface Emprestimo {
   rentalDate: string;       // ISO string vindo da API
   expectedReturn: string;   // ISO string vindo da API
   status: LoanStatus;
+}
+
+export async function postEmprestimo(data: emprestimoDataProps) {
+    try {
+        const response = await api.post('/emprestimos', data);
+        return response.data;
+    } catch(error) {
+        console.error("Erro ao cadastrar empréstimo:", error);
+        throw error;
+    }
 }
 
 export const getEmprestimosByLivroId = async (bookId: string) => {

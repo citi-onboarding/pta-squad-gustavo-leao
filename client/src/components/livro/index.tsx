@@ -75,7 +75,8 @@ export function CardLivro({ id, cover, title, author, category, totalQty, onDele
 
             {isOpenEmprestimo && ( // EmprestimoForm
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <EmprestimoForm 
+                    <EmprestimoForm
+                    bookId={id}
                     title={title} 
                     onClose={() => setIsOpenEmprestimo(false)}/>
                 </div>
