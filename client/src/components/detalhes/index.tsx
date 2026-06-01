@@ -1,9 +1,12 @@
-import * as React from "react"
+import { useEffect, useState, useRef } from "react"
 import { X, BookOpen, MoreHorizontal } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { sendLoanReminder } from "@/service/loanReminder"
 
-type LoanStatus = "Em andamento" | "Atrasado" | "Devolvido" | "Perdido"
+import { getLivroById } from "@/service/livro"
+import { getEmprestimosByLivroId, patchDevolver, patchPerdido } from "@/service/emprestimo"
+
+type LoanStatus = "EmAndamento" | "Atrasado" | "Devolvido" | "Perdido"
 
 interface Loan {
   id: string
@@ -43,7 +46,7 @@ const MOCK_BOOK: Book = {
       clientEmail: "joao@email.com",
       rentalDate: "20/04/2026",
       expectedReturn: "27/04/2026",
-      status: "Em andamento",
+      status: "EmAndamento",
     },
     {
       id: "e0efbb51-339d-44f6-8721-fd58dfb6a444",
@@ -64,18 +67,18 @@ const MOCK_BOOK: Book = {
   ],
 }
 
-const STATUS_STYLES: Record<LoanStatus, { bg: string; text: string }> = {
-  "Em andamento": { bg: "bg-yellow-100", text: "text-yellow-800" },
-  "Atrasado":     { bg: "bg-red-100",    text: "text-red-800"    },
-  "Devolvido":    { bg: "bg-emerald-100",text: "text-emerald-800"},
-  "Perdido":      { bg: "bg-gray-100",   text: "text-gray-700"  },
+const STATUS_STYLES: Record<LoanStatus, { bg: string; text: string, label: string }> = {
+  "EmAndamento": { bg: "bg-yellow-100", text: "text-yellow-800", label: "Em Andamento" },
+  "Atrasado":     { bg: "bg-red-100",    text: "text-red-800", label: "Atrasado"    },
+  "Devolvido":    { bg: "bg-emerald-100",text: "text-emerald-800", label: "Devolvido"},
+  "Perdido":      { bg: "bg-gray-100",   text: "text-gray-700", label: "Perdido"  },
 }
 
 function StatusBadge({ status }: { status: LoanStatus }) {
-  const { bg, text } = STATUS_STYLES[status]
+  const { bg, text, label } = STATUS_STYLES[status]
   return (
     <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${bg} ${text}`}>
-      {status}
+      {label}
     </span>
   )
 }
@@ -107,10 +110,10 @@ interface LoanMenuProps {
 }
 
 function LoanMenu({ loan, onReminder, onReturn, onLost }: LoanMenuProps) {
-  const [open, setOpen] = React.useState(false)
-  const menuRef = React.useRef<HTMLDivElement>(null)
+  const [open, setOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
 
-  React.useEffect(() => {
+  useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
         setOpen(false)
@@ -177,7 +180,11 @@ function LoanCard({
   onLost: (id: string) => void
 }) {
   const isOverdue = loan.status === "Atrasado"
-  const hasMenu = loan.status === "Em andamento" || isOverdue
+  const hasMenu = loan.status === "EmAndamento" || isOverdue
+
+  function formatDate(dateString: string) {
+    return new Date(dateString).toLocaleDateString("pt-BR");
+}
 
   return (
     <div className="rounded-lg border border-border bg-background px-4 py-3">
@@ -189,12 +196,12 @@ function LoanCard({
           </div>
           <p className="text-xs text-muted-foreground">{loan.clientEmail}</p>
           <p className="text-xs text-muted-foreground">
-            Locação:{" "}
-            <span className="font-medium text-foreground">{loan.rentalDate}</span>
+            Data de locação:{" "}
+            <span className="font-medium text-foreground">{formatDate(loan.rentalDate)}</span>
             {"   "}
-            Previsão:{" "}
+            Previsão de retorno:{" "}
             <span className={`font-medium ${isOverdue ? "text-red-700" : "text-foreground"}`}>
-              {loan.expectedReturn}
+              {formatDate(loan.expectedReturn)}
             </span>
           </p>
         </div>
@@ -216,30 +223,46 @@ export interface BookDetailsModalProps {
   open: boolean
   onClose: () => void
   book?: Book
+  bookId?: string
 }
 
 export function BookDetailsModal({
   open,
   onClose,
   book = MOCK_BOOK,
+  bookId, // the bookId will be a parameter given by CardLivro when it calls modalDetalhes
 }: BookDetailsModalProps) {
-  const [loans, setLoans] = React.useState<Loan[]>(book.loans)
+  const [loans, setLoans] = useState<Loan[]>(book.loans)
 
-  React.useEffect(() => {
+  useEffect(() => {
     setLoans(book.loans)
   }, [book.loans])
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!open) return
     const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose() }
     document.addEventListener("keydown", handler)
     return () => document.removeEventListener("keydown", handler)
   }, [open, onClose])
 
-  React.useEffect(() => {
+  useEffect(() => {
     document.body.style.overflow = open ? "hidden" : ""
     return () => { document.body.style.overflow = "" }
   }, [open])
+
+  const [bookData, setBookData] = useState<Book>(MOCK_BOOK)
+
+  useEffect(() => {
+    if (!open || !bookId) return;
+    getLivroById(bookId).then((data) => {
+        if (data) setBookData(data);
+    });
+  }, [open, bookId]);
+
+  useEffect(() => {
+    if (!open || !bookId) return;
+    getEmprestimosByLivroId(bookId).then((data) => { if (data) setLoans(data); })
+  }, [open, bookId]);
 
   if (!open) return null
 
@@ -252,13 +275,17 @@ export function BookDetailsModal({
     }
   }
 
-  function handleReturn(id: string) {
+  async function handleReturn(id: string) {
+    await patchDevolver(id);
+    alert("Empréstimo marcado como devolvido.");
     setLoans((prev) =>
       prev.map((loan) => loan.id === id ? { ...loan, status: "Devolvido" } : loan)
     )
   }
 
-  function handleLost(id: string) {
+  async function handleLost(id: string) {
+    await patchPerdido(id);
+    alert("Empréstimo marcado como perdido.");
     setLoans((prev) =>
       prev.map((loan) => loan.id === id ? { ...loan, status: "Perdido" } : loan)
     )
@@ -288,10 +315,10 @@ export function BookDetailsModal({
         <div className="overflow-y-auto">
           <div className="flex gap-5 border-b px-6 py-5">
             <div className="flex h-28 w-20 shrink-0 items-center justify-center rounded-lg border bg-muted">
-              {book.cover ? (
+              {bookData.cover ? (
                 <img
-                  src={book.cover}
-                  alt={`Capa de ${book.title}`}
+                  src={bookData.cover}
+                  alt={`Capa de ${bookData.title}`}
                   className="h-full w-full rounded-lg object-cover"
                 />
               ) : (
@@ -301,22 +328,22 @@ export function BookDetailsModal({
 
             <div className="flex-1 space-y-3">
               <div>
-                <p className="text-base font-semibold leading-snug">{book.title}</p>
-                <p className="text-sm text-muted-foreground">{book.author}</p>
+                <p className="text-base font-semibold leading-snug">{bookData.title}</p>
+                <p className="text-sm text-muted-foreground">{bookData.author}</p>
               </div>
 
               <div className="grid grid-cols-2 gap-x-8 gap-y-2.5">
-                <InfoField label="ISBN" value={book.isbn} />
+                <InfoField label="ISBN" value={bookData.isbn} />
                 <div>
                   <p className="mb-0.5 text-xs text-muted-foreground">Categoria</p>
-                  <p className="text-sm font-medium text-blue-500">{book.category}</p>
+                  <p className="text-sm font-medium text-blue-500">{bookData.category}</p>
                 </div>
-                <InfoField label="Editora" value={book.publisher} />
-                <InfoField label="Ano" value={book.year} />
-                <InfoField label="Quantidade Total" value={`${book.totalQty} unidades`} />
+                <InfoField label="Editora" value={bookData.publisher} />
+                <InfoField label="Ano" value={bookData.year} />
+                <InfoField label="Quantidade Total" value={`${bookData.totalQty} unidades`} />
                 <InfoField
                   label="Quantidade Disponível"
-                  value={`${book.availableQty} unidades`}
+                  value={`${bookData.availableQty} unidades`}
                   highlight
                 />
               </div>
