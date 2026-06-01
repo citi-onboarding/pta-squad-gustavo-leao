@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Search } from "lucide-react";
 
 import { CardLivro } from "@/components/livro";
+import { getAllLivros, deleteLivro } from "@/service/livros";
 
 interface Livro {
     id: string;
@@ -14,25 +15,43 @@ interface Livro {
     totalQty: number;
 }
 
-// Mock — integração com API ocorre na Sprint 3
-const mockLivros: Livro[] = [
-    { id: "1", title: "Clean Code", author: "Robert C. Martin", category: "Tecnologia", cover: "/assets/Tecnologia.png", totalQty: 5 },
-    { id: "9f6cb9a1-2f77-4ce6-8e74-3c069b24204e", title: "O Pequeno Príncipe", author: "Antoine de Saint-Exupéry", category: "Ciencias", cover: "/assets/Ciencias.png", totalQty: 10 },
-    { id: "3", title: "Dom Casmurro", author: "Machado de Assis", category: "Romance", cover: "/assets/Romance.png", totalQty: 3 },
-    { id: "4", title: "Sapiens", author: "Yuval Noah Harari", category: "História", cover: "/assets/Historia.png", totalQty: 4 },
-    { id: "5", title: "Cosmos", author: "Carl Sagan", category: "Ciências", cover: "/assets/Ciencias.png", totalQty: 4 },
-    { id: "6", title: "1984", author: "George Orwell", category: "Romance", cover: "/assets/Romance.png", totalQty: 7 },
-];
+const CATEGORIAS_PADRAO = ["Todas"];
 
-const CATEGORIAS = ["Todas", ...new Set(mockLivros.map((l) => l.category))];
 
 export default function LivrosPage() {
     const [query, setQuery] = useState("");
     const [categoria, setCategoria] = useState("Todas");
+    const [livros, setLivros] = useState<Livro[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        async function fetchLivros() {
+            setLoading(true);
+            setError(null);
+            try {
+                const data = await getAllLivros();
+                setLivros(data);
+                console.log(data);
+            } catch (err) {
+                setError("Erro ao buscar livros");
+            } finally {
+                setLoading(false);
+            }
+        }
+        fetchLivros();
+    }, []);
+
+    const categorias = useMemo(() => {
+        return [
+            ...CATEGORIAS_PADRAO,
+            ...Array.from(new Set(livros.map((l) => l.category)))
+        ];
+    }, [livros]);
 
     const livrosFiltrados = useMemo(() => {
         const termo = query.trim().toLowerCase();
-        return mockLivros.filter((livro) => {
+        return livros.filter((livro) => {
             const matchTermo =
                 !termo ||
                 livro.title.toLowerCase().includes(termo) ||
@@ -40,7 +59,17 @@ export default function LivrosPage() {
             const matchCategoria = categoria === "Todas" || livro.category === categoria;
             return matchTermo && matchCategoria;
         });
-    }, [query, categoria]);
+    }, [query, categoria, livros]);
+
+    async function handleDeleteLivro(id: string) {
+        try {
+            await deleteLivro(id);
+            alert(`Livro ${livros.find((l) => l.id === id)?.title} deletado com sucesso`);
+            setLivros((prev) => prev.filter((l) => l.id !== id));
+        } catch {
+            alert("Erro ao deletar livro");
+        }
+    }
 
     return (
         <main className="mx-auto max-w-7xl px-6 py-8">
@@ -65,7 +94,7 @@ export default function LivrosPage() {
                     onChange={(e) => setCategoria(e.target.value)}
                     className="rounded-md border border-gray-200 bg-white px-4 py-2 text-sm shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 sm:w-48"
                 >
-                    {CATEGORIAS.map((cat) => (
+                    {categorias.map((cat) => (
                         <option key={cat} value={cat}>
                             {cat}
                         </option>
@@ -73,7 +102,15 @@ export default function LivrosPage() {
                 </select>
             </div>
 
-            {livrosFiltrados.length === 0 ? (
+            {loading ? (
+                <div className="rounded-lg border border-dashed border-gray-300 bg-white py-16 text-center">
+                    <p className="text-gray-500">Carregando livros...</p>
+                </div>
+            ) : error ? (
+                <div className="rounded-lg border border-dashed border-gray-300 bg-white py-16 text-center">
+                    <p className="text-red-500">{error}</p>
+                </div>
+            ) : livrosFiltrados.length === 0 ? (
                 <div className="rounded-lg border border-dashed border-gray-300 bg-white py-16 text-center">
                     <p className="text-gray-500">Nenhum livro encontrado.</p>
                 </div>
@@ -88,6 +125,7 @@ export default function LivrosPage() {
                             category={livro.category}
                             cover={livro.cover}
                             totalQty={livro.totalQty}
+                            onDelete={handleDeleteLivro}
                         />
                     ))}
                 </div>
