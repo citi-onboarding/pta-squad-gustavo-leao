@@ -1,5 +1,6 @@
 {
   "name": "nextjs-boilerplate",
+  "packageManager": "pnpm@11.11.1",
   "private": true,
   "scripts": {
     "dev": "next dev",
