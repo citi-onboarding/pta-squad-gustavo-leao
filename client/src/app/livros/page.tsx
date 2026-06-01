@@ -17,7 +17,7 @@ interface Livro {
 // Mock — integração com API ocorre na Sprint 3
 const mockLivros: Livro[] = [
     { id: "1", title: "Clean Code", author: "Robert C. Martin", category: "Tecnologia", cover: "/assets/Tecnologia.png", totalQty: 5 },
-    { id: "2", title: "O Pequeno Príncipe", author: "Antoine de Saint-Exupéry", category: "Infantil", cover: "/assets/Infantil.png", totalQty: 8 },
+    { id: "9f6cb9a1-2f77-4ce6-8e74-3c069b24204e", title: "O Pequeno Príncipe", author: "Antoine de Saint-Exupéry", category: "Ciencias", cover: "/assets/Ciencias.png", totalQty: 10 },
     { id: "3", title: "Dom Casmurro", author: "Machado de Assis", category: "Romance", cover: "/assets/Romance.png", totalQty: 3 },
     { id: "4", title: "Sapiens", author: "Yuval Noah Harari", category: "História", cover: "/assets/Historia.png", totalQty: 4 },
     { id: "5", title: "Cosmos", author: "Carl Sagan", category: "Ciências", cover: "/assets/Ciencias.png", totalQty: 4 },
@@ -82,6 +82,7 @@ export default function LivrosPage() {
                     {livrosFiltrados.map((livro) => (
                         <CardLivro
                             key={livro.id}
+                            id={livro.id}
                             title={livro.title}
                             author={livro.author}
                             category={livro.category}

@@ -9,6 +9,7 @@ import { EmprestimoForm } from "../emprestimo";
 import { BookDetailsModal } from "../detalhes";
 
 interface CardLivroProps {
+    id?: string
     cover?: string;
     title?: string;
     author?: string;
@@ -16,7 +17,7 @@ interface CardLivroProps {
     totalQty?: number;
 }
 
-export function CardLivro({ cover, title, author, category, totalQty }: CardLivroProps) {
+export function CardLivro({ id, cover, title, author, category, totalQty }: CardLivroProps) {
     const [isOpenEmprestimo, setIsOpenEmprestimo] = useState(false);
     const [isOpenDetalhe, setIsOpenDetalhes] = useState(false);
 
@@ -68,7 +69,8 @@ export function CardLivro({ cover, title, author, category, totalQty }: CardLivr
 
             {isOpenEmprestimo && ( // EmprestimoForm
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <EmprestimoForm 
+                    <EmprestimoForm
+                    bookId={id}
                     title={title} 
                     onClose={() => setIsOpenEmprestimo(false)}/>
                 </div>
