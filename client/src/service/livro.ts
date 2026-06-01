@@ -1,4 +1,5 @@
-import api from "./api";
+import api from './api';
+import { formDataProps } from '../components/cadastro';
 
 export type Category =
   | "Romance"
@@ -18,6 +19,16 @@ export interface Livro {
   availableQty: number;
   category: Category;
   cover: string;
+}
+
+export async function postBook(data: formDataProps) {
+    try {
+        const response = await api.post('/livros', data);
+        return response.data;
+    } catch(error) {
+        console.error("Erro ao cadastrar livro:", error);
+        throw error;
+    }
 }
 
 export const getLivroById = async (id: string) => {

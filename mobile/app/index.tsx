@@ -17,6 +17,7 @@ import {
   romance,
   tecnologia,
 } from "@assets";
+import { getEmprestimosUsuario } from "../service/emprestimo";
 
 // Allowed status values to keep typing consistent.
 type LoanStatus = "Devolvido" | "Em andamento" | "Atrasado";
@@ -32,6 +33,7 @@ interface LoanItem {
   expectedReturn: string;
   status: LoanStatus;
 }
+
 
 // Mock data for Sprint 2 API integration comes in the next sprint.
 const LOANS: LoanItem[] = [
@@ -142,6 +144,8 @@ const App: React.FC = () => {
   // Stores the filtered list that will render the cards.
   const [results, setResults] = useState<LoanItem[]>([]);
 
+  const [isLoading, setIsLoading] = useState(false)
+
   // Builds the total label from the results count.
   const totalLabel = useMemo(
     () => `${results.length} empréstimo(s) encontrado(s)`,
@@ -149,23 +153,26 @@ const App: React.FC = () => {
   );
 
   // Applies a local filter by client email while there is no API.
-  const handleSearch = () => {
+  const handleSearch = async () => {
     // Normalizes the term to avoid case differences.
-    const term = searchTerm.trim().toLowerCase();
-    // If there is a term, filter by client email; otherwise return all.
-    let filtered: LoanItem[];
-
-    if (term.length) {
-      filtered = LOANS.filter(
-        (loan) => loan.clientEmail.toLowerCase() === term
-      );
-    } else {
-      filtered = [];
+    const terms = searchTerm.trim().toLowerCase(); 
+    
+    if (!terms.length) {
+      setResults([]);
+      return;
     }
 
-    // Updates the list and allows results to render.
-    setResults(filtered);
-    setHasSearched(true);
+    setIsLoading(true)
+
+    try {
+      const data = await getEmprestimosUsuario(terms);
+      setResults(data);
+      setHasSearched(true);
+      console.log("Empréstimos encontrados:", data);
+    } catch (error) {
+      console.error("Erro ao buscar empréstimos do usuário:", error);
+    }
+
   };
 
   return (
