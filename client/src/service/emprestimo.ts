@@ -1,8 +1,16 @@
 import api from "./api";
-/* routes:
-routes.get("/emprestimos/livro/:bookId", emprestimoController.listarPorLivro);
-routes.patch("/emprestimos/:id", emprestimoController.devolver);
-routes.patch("/emprestimos/:id/perdido", emprestimoController.marcarPerdido); */
+
+export type LoanStatus = "EmAndamento" | "Devolvido" | "Atrasado" | "Perdido";
+
+export interface Emprestimo {
+  id: string;
+  bookId: string;
+  clientName: string;
+  clientEmail: string;
+  rentalDate: string;       // ISO string vindo da API
+  expectedReturn: string;   // ISO string vindo da API
+  status: LoanStatus;
+}
 
 export const getEmprestimosByLivroId = async (bookId: string) => {
     try {
@@ -30,3 +38,8 @@ export const patchPerdido = async (id: string) => {
         console.log("Erro ao marcar este empréstimo como perdido.", error);
     }
 }
+
+export const getAllEmprestimos = async (): Promise<Emprestimo[]> => {
+  const response = await api.get<Emprestimo[]>("/emprestimos");
+  return response.data;
+};

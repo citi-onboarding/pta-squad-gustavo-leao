@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react"
 import { X, BookOpen, MoreHorizontal } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { sendLoanReminder } from "@/service/loanReminder"
 
 import { getLivroById } from "@/service/livro"
 import { getEmprestimosByLivroId, patchDevolver, patchPerdido } from "@/service/emprestimo"
@@ -48,9 +49,9 @@ const MOCK_BOOK: Book = {
       status: "EmAndamento",
     },
     {
-      id: "2",
+      id: "e0efbb51-339d-44f6-8721-fd58dfb6a444",
       clientName: "Maria Santos",
-      clientEmail: "maria@email.com",
+      clientEmail: "gustavo.leao@citi.org.br",
       rentalDate: "10/04/2026",
       expectedReturn: "17/04/2026",
       status: "Atrasado",
@@ -265,8 +266,13 @@ export function BookDetailsModal({
 
   if (!open) return null
 
-  function handleReminder(loan: Loan) {
-    alert(`Lembrete enviado para ${loan.clientEmail}`)
+  async function handleReminder(loan: Loan) {
+    try {
+      await sendLoanReminder(loan.id)
+      alert(`Lembrete enviado para ${loan.clientEmail}`)
+    } catch (err: any) {
+      alert(err?.message || 'Erro ao enviar lembrete.')
+    }
   }
 
   async function handleReturn(id: string) {
