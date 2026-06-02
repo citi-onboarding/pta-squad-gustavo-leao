@@ -27,7 +27,7 @@ const STATUS_STYLES: Record<LoanStatus, string> = {
   EmAndamento: "bg-amber-100 text-amber-700",
   Atrasado: "bg-rose-100 text-rose-700",
   Devolvido: "bg-emerald-100 text-emerald-700",
-  Perdido: "bg-cyan-100 text-cyan-800",
+  Perdido: "bg-gray-100 text-gray-700",
 };
 
 function StatusBadge({ status }: { status: LoanStatus }) {
