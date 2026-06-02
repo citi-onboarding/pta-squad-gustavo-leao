@@ -46,8 +46,8 @@ export function CardLivro({ id, cover, title, author, category, totalQty, onDele
     return(
         <div>
             <div className="w-80 h-auto flex-col rounded-lg shadow-lg"> {/* CardLivro */}
-                <div className="w-full h-48 bg-gray-100 rounded-t-lg">
-                    <img src={bookImage} alt={title} className="w-full h-48 object-cover rounded-t-lg"/>
+                <div className="w-full bg-gray-100 rounded-t-lg overflow-hidden aspect-square">
+                    <img src={bookImage} alt={title} className="w-full h-full object-cover"/>
                 </div>
 
                 <div className="flex-col gap-2 px-4 py-2">

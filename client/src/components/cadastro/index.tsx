@@ -39,6 +39,14 @@ export function Form() {
         }
     };
 
+    const categoryImages: Record<string, string> = {
+        Romance: "/assets/Romance.png",
+        Infantil: "/assets/Infantil.png",
+        Tecnologia: "/assets/Tecnologia.png",
+        Historia: "/assets/Historia.png",
+        Ciencias: "/assets/Ciencias.png",
+    };
+
     // className="w-1/2 h-1/4 p-8 gap-2"
     return (
         <form onSubmit={handleSubmit(onSubmit)}>
@@ -115,8 +123,15 @@ export function Form() {
                         <div
                             key={category}
                             onClick={() => setValue("category", category, { shouldValidate: true })}
-                            className={`rounded-lg cursor-pointer border-2 p-4 w-0 flex-1 h-32 flex flex-col items-center justify-end ${selectedCategory === category ? "border-green-400" : "border-gray-300"}`}>
-                            {category}
+                            className={`relative overflow-hidden rounded-lg cursor-pointer border-2 w-0 flex-1 h-32 flex flex-col justify-end ${selectedCategory === category ? "border-green-400" : "border-gray-300"}`}>
+                            <img
+                                src={categoryImages[category]}
+                                alt={`Capa ${category}`}
+                                className="absolute inset-0 h-full w-full object-cover"
+                            />
+                            <span className="relative z-10 w-full bg-white py-1 text-center text-sm">
+                                {category}
+                            </span>
                         </div>
                         ))}
                     </div>
