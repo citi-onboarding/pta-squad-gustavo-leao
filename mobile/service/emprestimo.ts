@@ -1,10 +1,8 @@
 import api from './api';
 
-export async function getEmprestimosUsuario(email: string) {
+export async function getAllEmprestimos() {
     try{
-        const response = await api.get('/emprestimos', {
-            params: { client: email }
-        });
+        const response = await api.get('/emprestimos');
         return response.data;
     }
     catch(error){
