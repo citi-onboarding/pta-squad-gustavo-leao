@@ -22,7 +22,7 @@ import { getAllEmprestimos } from "../service/emprestimo";
 import { getAllLivros } from "../service/livro";
 
 // Allowed status values to keep typing consistent.
-type LoanStatus = "Devolvido" | "EmAndamento" | "Atrasado";
+type LoanStatus = "Devolvido" | "EmAndamento" | "Atrasado" | "Perdido";
 
 // Data shape for a loan shown in a card.
 interface LoanItem {
@@ -42,12 +42,14 @@ const statusBadgeStyles: Record<LoanStatus, string> = {
   Devolvido: "bg-emerald-100 text-emerald-700",
   "EmAndamento": "bg-amber-100 text-amber-700",
   Atrasado: "bg-rose-100 text-rose-700",
+  Perdido: "bg-gray-100 text-gray-700",
 };
 
 const statusLabels: Record<LoanStatus, string> = {
   Devolvido: "Devolvido",
   EmAndamento: "Em Andamento",
   Atrasado: "Atrasado",
+  Perdido: "Perdido",
 };
 
 const bookCovers: Record<string, any> = {
