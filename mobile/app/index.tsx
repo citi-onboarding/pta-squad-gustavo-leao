@@ -1,5 +1,5 @@
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import {
   ScrollView,
   Text,
@@ -16,15 +16,18 @@ import {
   ciencias,
   romance,
   tecnologia,
+  infantil,
 } from "@assets";
-import { getEmprestimosUsuario } from "../service/emprestimo";
+import { getAllEmprestimos } from "../service/emprestimo";
+import { getAllLivros } from "../service/livro";
 
 // Allowed status values to keep typing consistent.
-type LoanStatus = "Devolvido" | "Em andamento" | "Atrasado";
+type LoanStatus = "Devolvido" | "EmAndamento" | "Atrasado";
 
 // Data shape for a loan shown in a card.
 interface LoanItem {
   id: string;
+  bookId: string;
   title: string;
   clientName: string;
   clientEmail: string;
@@ -34,107 +37,27 @@ interface LoanItem {
   status: LoanStatus;
 }
 
-
-// Mock data for Sprint 2 API integration comes in the next sprint.
-const LOANS: LoanItem[] = [
-  {
-    id: "1",
-    title: "Dom Casmurro",
-    clientName: "João Silva",
-    clientEmail: "joao.silva@email.com",
-    cover: romance,
-    rentalDate: "02/03/2026",
-    expectedReturn: "12/03/2026",
-    status: "Devolvido",
-  },
-  {
-    id: "2",
-    title: "Clean Code",
-    clientName: "João Silva",
-    clientEmail: "joao.silva@email.com",
-    cover: tecnologia,
-    rentalDate: "15/04/2026",
-    expectedReturn: "30/04/2026",
-    status: "Em andamento",
-  },
-  {
-    id: "3",
-    title: "História do Brasil",
-    clientName: "João Silva",
-    clientEmail: "joao.silva@email.com",
-    cover: historia,
-    rentalDate: "01/03/2026",
-    expectedReturn: "10/03/2026",
-    status: "Atrasado",
-  },
-  {
-    id: "4",
-    title: "Introdução à Ciência",
-    clientName: "João Silva",
-    clientEmail: "joao.silva@email.com",
-    cover: ciencias,
-    rentalDate: "20/04/2026",
-    expectedReturn: "05/05/2026",
-    status: "Em andamento",
-  },
-  {
-    id: "5",
-    title: "O Pequeno Príncipe",
-    clientName: "João Silva",
-    clientEmail: "joao.silva@email.com",
-    cover: romance,
-    rentalDate: "10/03/2026",
-    expectedReturn: "20/03/2026",
-    status: "Devolvido",
-  },
-  {
-    id: "6",
-    title: "Capitaes da Areia",
-    clientName: "Pedro Siqueira",
-    clientEmail: "pedro.siqueira@email.com",
-    cover: romance,
-    rentalDate: "08/05/2026",
-    expectedReturn: "18/05/2026",
-    status: "Em andamento",
-  },
-  {
-    id: "7",
-    title: "A Revolucao dos Bichos",
-    clientName: "Pedro Siqueira",
-    clientEmail: "pedro.siqueira@email.com",
-    cover: historia,
-    rentalDate: "01/04/2026",
-    expectedReturn: "11/04/2026",
-    status: "Devolvido",
-  },
-  {
-    id: "8",
-    title: "Vidas Secas",
-    clientName: "Gustavo Leao",
-    clientEmail: "gustavo.leao@email.com",
-    cover: romance,
-    rentalDate: "12/05/2026",
-    expectedReturn: "22/05/2026",
-    status: "Em andamento",
-  },
-  {
-    id: "9",
-    title: "Memorias Postumas",
-    clientName: "Gustavo Leao",
-    clientEmail: "gustavo.leao@email.com",
-    cover: historia,
-    rentalDate: "14/03/2026",
-    expectedReturn: "24/03/2026",
-    status: "Atrasado",
-  },
-];
-
 // Maps status to badge styles (color and text).
 const statusBadgeStyles: Record<LoanStatus, string> = {
   Devolvido: "bg-emerald-100 text-emerald-700",
-  "Em andamento": "bg-amber-100 text-amber-700",
+  "EmAndamento": "bg-amber-100 text-amber-700",
   Atrasado: "bg-rose-100 text-rose-700",
 };
+
+const statusLabels: Record<LoanStatus, string> = {
+  Devolvido: "Devolvido",
+  EmAndamento: "Em Andamento",
+  Atrasado: "Atrasado",
+};
+
+const bookCovers: Record<string, any> = {
+  "/assets/Historia.png": historia,
+  "/assets/Ciencias.png": ciencias,
+  "/assets/Romance.png": romance,
+  "/assets/Tecnologia.png": tecnologia,
+  "/assets/Infantil.png": infantil,
+};
+
 
 const App: React.FC = () => {
   // Stores the text typed in the search field.
@@ -145,6 +68,28 @@ const App: React.FC = () => {
   const [results, setResults] = useState<LoanItem[]>([]);
 
   const [isLoading, setIsLoading] = useState(false)
+
+  const [livrosMapa, setLivrosMapa] = useState<Record<string, any>>({});
+
+  useEffect(() => {
+    const buscarLivros = async () => {
+      try {
+        const data = await getAllLivros();
+        
+        // transforms the array of books into a map for quick access by ID.
+        const mapa: Record<string, any> = {};
+        data.forEach((livro: any) => {
+          mapa[livro.id] = livro;
+        });
+        
+        setLivrosMapa(mapa);
+      } catch (error) {
+        console.error("Erro ao buscar catálogo de livros");
+      }
+    };
+    buscarLivros();
+  }, []);
+
 
   // Builds the total label from the results count.
   const totalLabel = useMemo(
@@ -165,14 +110,33 @@ const App: React.FC = () => {
     setIsLoading(true)
 
     try {
-      const data = await getEmprestimosUsuario(terms);
+      const allData = await getAllEmprestimos();
+      const data = allData.filter((loan: LoanItem) => 
+      loan.clientEmail.toLowerCase() === terms
+      );
+      
+      if (data.length === 0) {
+        alert("Nenhum empréstimo encontrado para este email.");
+      }
+
       setResults(data);
       setHasSearched(true);
-      console.log("Empréstimos encontrados:", data);
+      setIsLoading(false)
+
     } catch (error) {
       console.error("Erro ao buscar empréstimos do usuário:", error);
+      //alertar ususário sobre erro
+      setIsLoading(false)
     }
 
+  };
+
+  // function to format ISO date string to "dd/mm/yyyy" format
+  const formatarData = (dataIso: string) => {
+    if (!dataIso.includes('T')) return dataIso; 
+    
+    const data = new Date(dataIso);
+    return data.toLocaleDateString('pt-BR', { timeZone: 'UTC' });
   };
 
   return (
@@ -225,14 +189,14 @@ const App: React.FC = () => {
               >
                 <View className="flex-row gap-2">
                   <Image
-                    source={loan.cover}
+                    source={bookCovers[livrosMapa[loan.bookId]?.cover] || logoCopy} 
                     className="rounded-lg"
                     style={{ width: 84, height: 112 }}
                     resizeMode="cover"
-                  />
+/>
                   <View className="flex-1">
                     <Text className="text-sm font-barlowSemiBold text-slate-800">
-                      {loan.title}
+                      {livrosMapa[loan.bookId]?.title || "Carregando livro..."}
                     </Text>
                     <View className="mt-3">
                       <Text
@@ -240,20 +204,20 @@ const App: React.FC = () => {
                           statusBadgeStyles[loan.status]
                         }`}
                       >
-                        {loan.status}
+                        {statusLabels[loan.status]}
                       </Text>
                     </View>
                     <View className="mt-3 gap-2">
                       <View className="flex-row items-center gap-2">
                         <Calendar size={14} color="#94A3B8" />
                         <Text className="text-sm font-barlowRegular text-slate-600">
-                          Locação: {loan.rentalDate}
+                          Locação: {formatarData(loan.rentalDate)}
                         </Text>
                       </View>
                       <View className="flex-row items-center gap-2">
                         <Calendar size={14} color="#94A3B8" />
                         <Text className="text-sm font-barlowRegular text-slate-600">
-                          Devolução: {loan.expectedReturn}
+                          Devolução: {formatarData(loan.expectedReturn)}
                         </Text>
                       </View>
                     </View>

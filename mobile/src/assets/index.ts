@@ -4,6 +4,7 @@ import historia from './Historia_copy.png';
 import ciencias from './Ciencias_copy.png';
 import romance from './Romance_copy.png';
 import tecnologia from './Tecnologia_copy.png';
+import infantil from './Infantil_copy.png';
 
 export {
   citi,
@@ -12,4 +13,5 @@ export {
   ciencias,
   romance,
   tecnologia,
+  infantil,
 };
