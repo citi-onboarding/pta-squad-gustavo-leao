@@ -27,51 +27,13 @@ interface Book {
   totalQty: number
   availableQty: number
   cover?: string
-  loans: Loan[]
 }
 
-const MOCK_BOOK: Book = {
-  title: "O Pequeno Príncipe",
-  author: "Antoine de Saint-Exupéry",
-  isbn: "978-0132350884",
-  category: "Infantil",
-  publisher: "Prentice Hall",
-  year: 2008,
-  totalQty: 10,
-  availableQty: 8,
-  loans: [
-    {
-      id: "1",
-      clientName: "João Silva",
-      clientEmail: "joao@email.com",
-      rentalDate: "20/04/2026",
-      expectedReturn: "27/04/2026",
-      status: "EmAndamento",
-    },
-    {
-      id: "e0efbb51-339d-44f6-8721-fd58dfb6a444",
-      clientName: "Maria Santos",
-      clientEmail: "gustavo.leao@citi.org.br",
-      rentalDate: "10/04/2026",
-      expectedReturn: "17/04/2026",
-      status: "Atrasado",
-    },
-    {
-      id: "3",
-      clientName: "Pedro Costa",
-      clientEmail: "pedro@email.com",
-      rentalDate: "05/04/2026",
-      expectedReturn: "12/04/2026",
-      status: "Devolvido",
-    },
-  ],
-}
-
-const STATUS_STYLES: Record<LoanStatus, { bg: string; text: string, label: string }> = {
-  "EmAndamento": { bg: "bg-yellow-100", text: "text-yellow-800", label: "Em Andamento" },
-  "Atrasado":     { bg: "bg-red-100",    text: "text-red-800", label: "Atrasado"    },
-  "Devolvido":    { bg: "bg-emerald-100",text: "text-emerald-800", label: "Devolvido"},
-  "Perdido":      { bg: "bg-gray-100",   text: "text-gray-700", label: "Perdido"  },
+const STATUS_STYLES: Record<LoanStatus, { bg: string; text: string; label: string }> = {
+  EmAndamento: { bg: "bg-yellow-100", text: "text-yellow-800", label: "Em Andamento" },
+  Atrasado:    { bg: "bg-red-100",    text: "text-red-800",    label: "Atrasado" },
+  Devolvido:   { bg: "bg-emerald-100",text: "text-emerald-800",label: "Devolvido" },
+  Perdido:     { bg: "bg-gray-100",   text: "text-gray-700",   label: "Perdido" },
 }
 
 function StatusBadge({ status }: { status: LoanStatus }) {
@@ -183,8 +145,8 @@ function LoanCard({
   const hasMenu = loan.status === "EmAndamento" || isOverdue
 
   function formatDate(dateString: string) {
-    return new Date(dateString).toLocaleDateString("pt-BR");
-}
+    return new Date(dateString).toLocaleDateString("pt-BR")
+  }
 
   return (
     <div className="rounded-lg border border-border bg-background px-4 py-3">
@@ -222,21 +184,12 @@ function LoanCard({
 export interface BookDetailsModalProps {
   open: boolean
   onClose: () => void
-  book?: Book
   bookId?: string
 }
 
-export function BookDetailsModal({
-  open,
-  onClose,
-  book = MOCK_BOOK,
-  bookId, // the bookId will be a parameter given by CardLivro when it calls modalDetalhes
-}: BookDetailsModalProps) {
-  const [loans, setLoans] = useState<Loan[]>(book.loans)
-
-  useEffect(() => {
-    setLoans(book.loans)
-  }, [book.loans])
+export function BookDetailsModal({ open, onClose, bookId }: BookDetailsModalProps) {
+  const [bookData, setBookData] = useState<Book | null>(null)
+  const [loans, setLoans] = useState<Loan[]>([])
 
   useEffect(() => {
     if (!open) return
@@ -250,19 +203,27 @@ export function BookDetailsModal({
     return () => { document.body.style.overflow = "" }
   }, [open])
 
-  const [bookData, setBookData] = useState<Book>(MOCK_BOOK)
-
   useEffect(() => {
-    if (!open || !bookId) return;
+    if (!open || !bookId) return
     getLivroById(bookId).then((data) => {
-        if (data) setBookData(data);
-    });
-  }, [open, bookId]);
+      if (data) setBookData(data)
+    })
+  }, [open, bookId])
 
   useEffect(() => {
-    if (!open || !bookId) return;
-    getEmprestimosByLivroId(bookId).then((data) => { if (data) setLoans(data); })
-  }, [open, bookId]);
+    if (!open || !bookId) return
+    getEmprestimosByLivroId(bookId).then((data) => {
+      if (data) setLoans(data)
+    })
+  }, [open, bookId])
+
+  // Reset ao fechar pra evitar mostrar dados antigos no próximo abrir
+  useEffect(() => {
+    if (!open) {
+      setBookData(null)
+      setLoans([])
+    }
+  }, [open])
 
   if (!open) return null
 
@@ -271,23 +232,23 @@ export function BookDetailsModal({
       await sendLoanReminder(loan.id)
       alert(`Lembrete enviado para ${loan.clientEmail}`)
     } catch (err: any) {
-      alert(err?.message || 'Erro ao enviar lembrete.')
+      alert(err?.message || "Erro ao enviar lembrete.")
     }
   }
 
   async function handleReturn(id: string) {
-    await patchDevolver(id);
-    alert("Empréstimo marcado como devolvido.");
+    await patchDevolver(id)
+    alert("Empréstimo marcado como devolvido.")
     setLoans((prev) =>
-      prev.map((loan) => loan.id === id ? { ...loan, status: "Devolvido" } : loan)
+      prev.map((loan) => (loan.id === id ? { ...loan, status: "Devolvido" } : loan))
     )
   }
 
   async function handleLost(id: string) {
-    await patchPerdido(id);
-    alert("Empréstimo marcado como perdido.");
+    await patchPerdido(id)
+    alert("Empréstimo marcado como perdido.")
     setLoans((prev) =>
-      prev.map((loan) => loan.id === id ? { ...loan, status: "Perdido" } : loan)
+      prev.map((loan) => (loan.id === id ? { ...loan, status: "Perdido" } : loan))
     )
   }
 
@@ -313,64 +274,72 @@ export function BookDetailsModal({
         </div>
 
         <div className="overflow-y-auto">
-          <div className="flex gap-5 border-b px-6 py-5">
-            <div className="flex h-28 w-20 shrink-0 items-center justify-center rounded-lg border bg-muted">
-              {bookData.cover ? (
-                <img
-                  src={bookData.cover}
-                  alt={`Capa de ${bookData.title}`}
-                  className="h-full w-full rounded-lg object-cover"
-                />
-              ) : (
-                <BookOpen className="h-8 w-8 text-muted-foreground" />
-              )}
+          {!bookData ? (
+            <div className="px-6 py-12 text-center text-sm text-muted-foreground">
+              Carregando informações do livro...
             </div>
-
-            <div className="flex-1 space-y-3">
-              <div>
-                <p className="text-base font-semibold leading-snug">{bookData.title}</p>
-                <p className="text-sm text-muted-foreground">{bookData.author}</p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-x-8 gap-y-2.5">
-                <InfoField label="ISBN" value={bookData.isbn} />
-                <div>
-                  <p className="mb-0.5 text-xs text-muted-foreground">Categoria</p>
-                  <p className="text-sm font-medium text-blue-500">{bookData.category}</p>
+          ) : (
+            <>
+              <div className="flex gap-5 border-b px-6 py-5">
+                <div className="flex h-28 w-20 shrink-0 items-center justify-center rounded-lg border bg-muted">
+                  {bookData.cover ? (
+                    <img
+                      src={bookData.cover}
+                      alt={`Capa de ${bookData.title}`}
+                      className="h-full w-full rounded-lg object-cover"
+                    />
+                  ) : (
+                    <BookOpen className="h-8 w-8 text-muted-foreground" />
+                  )}
                 </div>
-                <InfoField label="Editora" value={bookData.publisher} />
-                <InfoField label="Ano" value={bookData.year} />
-                <InfoField label="Quantidade Total" value={`${bookData.totalQty} unidades`} />
-                <InfoField
-                  label="Quantidade Disponível"
-                  value={`${bookData.availableQty} unidades`}
-                  highlight
-                />
-              </div>
-            </div>
-          </div>
 
-          <div className="px-6 py-5">
-            <h3 className="mb-3 text-sm font-semibold text-foreground">
-              Histórico de Empréstimos
-            </h3>
+                <div className="flex-1 space-y-3">
+                  <div>
+                    <p className="text-base font-semibold leading-snug">{bookData.title}</p>
+                    <p className="text-sm text-muted-foreground">{bookData.author}</p>
+                  </div>
 
-            {loans.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Nenhum empréstimo registrado.</p>
-            ) : (
-              <div className="space-y-2.5">
-                {loans.map((loan) => (
-                  <LoanCard
-                    key={loan.id}
-                    loan={loan}
-                    onReminder={handleReminder}
-                    onReturn={handleReturn}
-                    onLost={handleLost}
-                  />
-                ))}
+                  <div className="grid grid-cols-2 gap-x-8 gap-y-2.5">
+                    <InfoField label="ISBN" value={bookData.isbn} />
+                    <div>
+                      <p className="mb-0.5 text-xs text-muted-foreground">Categoria</p>
+                      <p className="text-sm font-medium text-blue-500">{bookData.category}</p>
+                    </div>
+                    <InfoField label="Editora" value={bookData.publisher} />
+                    <InfoField label="Ano" value={bookData.year} />
+                    <InfoField label="Quantidade Total" value={`${bookData.totalQty} unidades`} />
+                    <InfoField
+                      label="Quantidade Disponível"
+                      value={`${bookData.availableQty} unidades`}
+                      highlight
+                    />
+                  </div>
+                </div>
               </div>
-            )}
-          </div>
+
+              <div className="px-6 py-5">
+                <h3 className="mb-3 text-sm font-semibold text-foreground">
+                  Histórico de Empréstimos
+                </h3>
+
+                {loans.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">Nenhum empréstimo registrado.</p>
+                ) : (
+                  <div className="space-y-2.5">
+                    {loans.map((loan) => (
+                      <LoanCard
+                        key={loan.id}
+                        loan={loan}
+                        onReminder={handleReminder}
+                        onReturn={handleReturn}
+                        onLost={handleLost}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>
