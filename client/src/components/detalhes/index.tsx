@@ -186,6 +186,17 @@ function LoanCard({
     return new Date(dateString).toLocaleDateString("pt-BR");
 }
 
+  function calcProgress(start: string, end: string): number {
+    const startDate = new Date(start).getTime();
+    const endDate = new Date(end).getTime();
+    const today = new Date().getTime();
+    
+    const total = endDate - startDate;
+    const elapsed = today - startDate;
+    
+    return Math.min(Math.max((elapsed / total) * 100, 0), 100);
+}
+
   return (
     <div className="rounded-lg border border-border bg-background px-4 py-3">
       <div className="flex items-start justify-between gap-3">
@@ -204,6 +215,14 @@ function LoanCard({
               {formatDate(loan.expectedReturn)}
             </span>
           </p>
+          {(loan.status === "EmAndamento" || loan.status === "Atrasado") && (
+              <div className="mt-2 h-1.5 w-full rounded-full bg-gray-200">
+                  <div
+                      className={`h-1.5 rounded-full ${loan.status === "Atrasado" ? "bg-red-500" : "bg-green-500"}`}
+                      style={{ width: `${calcProgress(loan.rentalDate, loan.expectedReturn)}%` }}
+                  />
+              </div>
+          )}
         </div>
 
         {hasMenu && (
