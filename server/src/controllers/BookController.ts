@@ -70,26 +70,42 @@ class BookController implements Crud {
   };
 
   delete = async (request: Request, response: Response) => {
-  const { id } = request.params;
-  try {
-    const activeLoans = await prisma.loan.count({
-      where: { bookId: id, status: "EmAndamento" },
-    });
+    const { id } = request.params;
+    try {
+      // 1. Verifica se existem empréstimos ATIVOS ou ATRASADOS
+      const activeLoansCount = await prisma.loan.count({
+        where: { 
+          bookId: id, 
+          status: {
+            in: ["EmAndamento", "Atrasado"] // Bloqueia a exclusão nestes dois cenários
+          }
+        },
+      });
 
-    if (activeLoans > 0) {
+      if (activeLoansCount > 0) {
+        return response
+          .status(400)
+          .send({ message: "Livro possui empréstimos em andamento ou atrasados" });
+      }
+
+      // 2. Limpeza do Histórico: Apaga os empréstimos finalizados (Devolvidos/Perdidos)
+      // Isso é essencial para não tomar o erro de Foreign Key do banco de dados!
+      await prisma.loan.deleteMany({ 
+        where: { bookId: id } 
+      });
+
+      // 3. Caminho livre: Deleta o livro com segurança
+      await prisma.book.delete({ where: { id } });
+      
+      return response
+        .status(200)
+        .send({ messageFromDelete: "Livro e histórico removidos com sucesso" });
+    } catch (error) {
+      console.error("Erro na deleção:", error);
       return response
         .status(400)
-        .send({ message: "Livro possui empréstimos ativos" });
+        .send({ messageFromDelete: "Erro ao remover livro" });
     }
-    await prisma.book.delete({ where: { id } });
-    return response
-      .status(200)
-      .send({ messageFromDelete: "Livro removido com sucesso" });
-  } catch (error) {
-    return response
-      .status(400)
-      .send({ messageFromDelete: "Erro ao remover livro" });
-  }
   };
 }
 
