@@ -66,8 +66,13 @@ export default function LivrosPage() {
             await deleteLivro(id);
             alert(`Livro ${livros.find((l) => l.id === id)?.title} deletado com sucesso`);
             setLivros((prev) => prev.filter((l) => l.id !== id));
-        } catch {
-            alert("Erro ao deletar livro");
+        } catch (error: any) {
+            if (error.response && error.response.status === 400) {
+                alert("Não é possível remover um livro com empréstimos ativos");
+            } else {
+                alert("Erro ao deletar livro");
+                console.error(error);
+            }
         }
     }
 
